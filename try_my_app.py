@@ -12,15 +12,18 @@ openai.api_key = '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'
 def chunkstring(string, length):
         return (string[0+i:length+i] for i in range(0, len(string), length))
 
-def summarize_materials(text): #这里的重点是，对每一个file做尽可能简短且覆盖全面的summarization
+def summarize_materials(file_paths): #这里的重点是，对每一个file做尽可能简短且覆盖全面的summarization
     # initialize text summarization pipeline
     summarizer = pipeline("summarization") #调用transformers来对Knowledge Materials（md文档）做summarization，缺陷是效率比较低可能会搞很久
-
     summarized_materials = []
-    data = text
-    chunks = list(chunkstring(data, 1024)) #chunkstring是自定义的函数
-    summary = [summarizer(chunk, max_length=64, min_length=30, do_sample=False)[0]['summary_text'] for chunk in chunks]
-    summarized_materials.append((f"Summary for file:\n {' '.join(summary)}\n"))
+
+    for file_path in file_paths:
+        with open(file_path, 'r') as file:
+            data = file.read()
+            chunks = list(chunkstring(data, 1024)) #chunkstring是自定义的函数
+            summary = [summarizer(chunk, max_length=64, min_length=30, do_sample=False)[0]['summary_text'] for chunk in chunks]
+            summarized_materials.append((f"Summary for {file_path}:\n {' '.join(summary)}\n"))
+
     return summarized_materials
 
 def get_completion_from_messages(messages, model="gpt-4", temperature=0):
@@ -168,6 +171,7 @@ def app():
     st.title("OmniTutor v0.0.1")
 
     with st.sidebar:
+        st.image("https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/20231021212525.png")
         added_file = st.file_uploader('Upload .txt or .md files', type=['txt','md'], accept_multiple_files=True)
         num_lessons = st.slider('How many lessons do you want this course to have?', min_value=2, max_value=9, value=3, step=1)
         btn = st.button('submit')
