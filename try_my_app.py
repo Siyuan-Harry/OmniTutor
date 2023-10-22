@@ -42,9 +42,11 @@ def get_keywords(file_paths): #这里的重点是，对每一个file做尽可能
             word_freq = Counter(words)
             # get top 20 most common words
             keywords = word_freq.most_common(20)
-            keywords = [word[0] for word in keywords]
-            str_keywords = ''
+            new_keywords = []
             for word in keywords:
+                new_keywords.append(word[0])
+            str_keywords = ''
+            for word in new_keywords:
                 str_keywords += word + ", "
             keywords_list.append(f"Top20 frequency keywords for {file_path}: {str_keywords}")
 
@@ -213,9 +215,6 @@ def app():
         courseOutline, course_content_list = main(temp_file_paths, num_lessons)
         Course_Outline.value = courseOutline
         Course_Content.value = course_content_list
-        
-    
-    #col1, col2 = st.columns(2)
 
     
 if __name__ == "__main__":
