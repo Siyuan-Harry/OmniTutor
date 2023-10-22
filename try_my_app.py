@@ -3,6 +3,7 @@ import numpy as np
 import faiss
 from transformers import pipeline
 import openai
+import tempfile
 from sentence_transformers import SentenceTransformer
 import streamlit as st
 
@@ -170,13 +171,22 @@ def app():
 
     with st.sidebar:
         st.image("https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/20231021212525.png")
-        added_file = st.file_uploader('Upload .txt or .md files', type=['txt','md'], accept_multiple_files=True)
+        added_files = st.file_uploader('Upload .txt or .md file', type=['md'], accept_multiple_files=True)
         num_lessons = st.slider('How many lessons do you want this course to have?', min_value=2, max_value=9, value=3, step=1)
         btn = st.button('submit')
+    
     Course_Outline = st.text_area("Course Outline")
     Course_Content = st.text_area("Course Content")
+
     if btn:
-        courseOutline, course_content_list = main(added_file, num_lessons)
+        temp_file_paths = []
+        with st.spinner("Processing file..."):
+            for added_file in added_files:
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as tmp:
+                    tmp.write(added_file.getvalue())
+                    tmp_path = tmp.name
+                    temp_file_paths.append(tmp_path)
+        courseOutline, course_content_list = main(temp_file_paths, num_lessons)
         Course_Outline.value = courseOutline
         Course_Content.value = course_content_list
         
