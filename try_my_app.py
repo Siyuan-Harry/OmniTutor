@@ -1,30 +1,50 @@
 import pandas as pd
 import numpy as np
 import faiss
-from transformers import pipeline
 import openai
 import tempfile
 from sentence_transformers import SentenceTransformer
 import streamlit as st
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+from collections import Counter
+import nltk
 
 openai.api_key = st.secrets["OPENAI_API_KEY"]
+
+@st.cache_data
+def download_nltk():
+    nltk.download('punkt')
+    nltk.download('wordnet')
+    nltk.download('stopwords')
 
 def chunkstring(string, length):
         return (string[0+i:length+i] for i in range(0, len(string), length))
 
-def summarize_materials(file_paths): #这里的重点是，对每一个file做尽可能简短且覆盖全面的summarization
-    # initialize text summarization pipeline
-    summarizer = pipeline("summarization") #调用transformers来对Knowledge Materials（md文档）做summarization，缺陷是效率比较低可能会搞很久
-    summarized_materials = []
-
+def get_keywords(file_paths): #这里的重点是，对每一个file做尽可能简短且覆盖全面的summarization
+    
+    keywords_list = []
     for file_path in file_paths:
         with open(file_path, 'r') as file:
             data = file.read()
-            chunks = list(chunkstring(data, 1024)) #chunkstring是自定义的函数
-            summary = [summarizer(chunk, max_length=64, min_length=30, do_sample=False)[0]['summary_text'] for chunk in chunks]
-            summarized_materials.append((f"Summary for {file_path}:\n {' '.join(summary)}\n"))
+            # tokenize
+            words = word_tokenize(data)
+            # remove punctuation
+            words = [word for word in words if word.isalnum()]
+            # remove stopwords
+            stop_words = set(stopwords.words('english'))
+            words = [word for word in words if word not in stop_words]
+            # lemmatization
+            lemmatizer = WordNetLemmatizer()
+            words = [lemmatizer.lemmatize(word) for word in words]
+            # count word frequencies
+            word_freq = Counter(words)
+            # get top 100 most common words
+            keywords = word_freq.most_common(20)
+            keywords_list.append((f"Top20 frequency keywords for {file_path}:\n {' '.join(keywords)}\n"))
 
-    return summarized_materials
+    return keywords_list
 
 def get_completion_from_messages(messages, model="gpt-4", temperature=0):
         response = openai.ChatCompletion.create(
@@ -67,7 +87,7 @@ def genarating_outline(summarized_materials, num_lessons):
     return list_response
 
 def courseOutlineGenerating(file_paths, num_lessons):
-    summarized_materials = summarize_materials(file_paths)
+    summarized_materials = get_keywords(file_paths)
     course_outline = genarating_outline(summarized_materials, num_lessons)
     return course_outline
 
