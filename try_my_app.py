@@ -201,8 +201,7 @@ def app():
         num_lessons = st.slider('How many lessons do you want this course to have?', min_value=2, max_value=9, value=3, step=1)
         btn = st.button('submit')
     
-    Course_Outline = st.text_area("Course Outline")
-    Course_Content = st.text_area("Course Content")
+    
 
     if btn:
         temp_file_paths = []
@@ -213,8 +212,9 @@ def app():
                     tmp_path = tmp.name
                     temp_file_paths.append(tmp_path)
         courseOutline, course_content_list = main(temp_file_paths, num_lessons)
-        Course_Outline.value = courseOutline
-        Course_Content.value = course_content_list
+
+        st.text_area("Course Outline", value=courseOutline)
+        st.text_area("Course Content", value=course_content_list)
 
     
 if __name__ == "__main__":
