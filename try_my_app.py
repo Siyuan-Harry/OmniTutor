@@ -141,10 +141,10 @@ def searchVDB(search_sentence, paraphrase_embeddings_df, index):
     embeddings = np.ascontiguousarray(embeddings, dtype=np.float32)
 
     model = SentenceTransformer('paraphrase-mpnet-base-v2')
-    sentence_embedding = model.encode(search_sentence)
+    sentence_embedding = model.encode([search_sentence])
 
     # Ensuring the sentence embedding is in the correct format
-    sentence_embedding = np.ascontiguousarray([sentence_embedding], dtype=np.float32)
+    sentence_embedding = np.ascontiguousarray(sentence_embedding, dtype=np.float32)
     # Searching for the top 3 nearest neighbors in the FAISS index
     D, I = index.search(sentence_embedding, k=3)
     # Printing the top 3 most similar text chunks
