@@ -171,7 +171,7 @@ def app():
 
     with st.sidebar:
         st.image("https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/20231021212525.png")
-        added_files = st.file_uploader('Upload .md file', type=['md'], accept_multiple_files=True)
+        added_files = st.file_uploader('Upload .md file', type=['.md'], accept_multiple_files=True)
         num_lessons = st.slider('How many lessons do you want this course to have?', min_value=2, max_value=9, value=3, step=1)
         btn = st.button('submit')
     
