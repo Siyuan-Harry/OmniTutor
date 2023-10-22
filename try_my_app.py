@@ -23,7 +23,7 @@ def chunkstring(string, length):
         return (string[0+i:length+i] for i in range(0, len(string), length))
 
 def get_keywords(file_paths): #这里的重点是，对每一个file做尽可能简短且覆盖全面的summarization
-    
+    download_nltk()
     keywords_list = []
     for file_path in file_paths:
         with open(file_path, 'r') as file:
