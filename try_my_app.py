@@ -40,9 +40,13 @@ def get_keywords(file_paths): #这里的重点是，对每一个file做尽可能
             words = [lemmatizer.lemmatize(word) for word in words]
             # count word frequencies
             word_freq = Counter(words)
-            # get top 100 most common words
+            # get top 20 most common words
             keywords = word_freq.most_common(20)
-            keywords_list.append((f"Top20 frequency keywords for {file_path}:\n {' '.join(keywords)}\n"))
+            keywords = [word[0] for word in keywords]
+            str_keywords = ''
+            for word in keywords:
+                str_keywords += word + ", "
+            keywords_list.append(f"Top20 frequency keywords for {file_path}: {str_keywords}")
 
     return keywords_list
 
@@ -59,14 +63,14 @@ def genarating_outline(summarized_materials, num_lessons):
 
     system_message = 'You are a great AI teacher and linguist, skilled at create course outline based on summarized knowledge materials.'
     user_message = f"""You are a great AI teacher and linguist,
-            skilled at generating course outline based on summarized knowledge materials.
-            Based on knowledge materials provided, you should carefully design a course by outputting its outline.
-            This course is aimed to teach new hands the related knowledge focus on these materials.
-            knowledge materials: {summarized_materials}
+            skilled at generating course outline based on keywords of the course.
+            Based on keywords provided, you should carefully design a course by outputting its outline.
+            Through learning this course, learner should understand those key concepts.
+            keywords: {summarized_materials}
             you should output course outline in a python list format, Do not include anything else except that python list in your output.
             Example output format:
             [[name_lesson1, abstract_lesson1],[name_lesson2, abstrct_lesson2]]
-            for this course, you should output {num_lessons} lessons in total.
+            for this course, you should design {num_lessons} lessons in total.
             """
     messages =  [
                 {'role':'system',
@@ -156,8 +160,8 @@ def generateCourse(topic, materials):
 
     user_message = f"""You are a great AI teacher and linguist,
             skilled at generating course content based on given lesson topic and knowledge materials.
-            Your lesson topic is within the 「」 quotes, and the knowledge materials are within the 【】 brackets.
-            lesson topic: 「{topic}」,
+            Your lesson topic and abstract is within the 「」 quotes, and the knowledge materials are within the 【】 brackets.
+            lesson topic and abstract: 「{topic}」,
             knowledge materials：【{materials} 】"""
 
     messages =  [
