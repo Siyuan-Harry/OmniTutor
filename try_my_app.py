@@ -218,17 +218,16 @@ def app():
             outline_generating_state.text("Generating Course Oueline...Done")
 
             course_outline_string = ''
-            outline_area = st.text_area("Course Outline", value=course_outline_string) #检查下可以写到这里不，如果是空值就写到循环后面
             lessons_count = 0
             for outline in course_outline_list:
                 lessons_count += 1
                 course_outline_string += f"{lessons_count}." + outline[0] + '\n'
                 course_outline_string += outline[1] + '\n\n'
-                time.sleep(1)
-                outline_area.value = course_outline_string
+                #time.sleep(1)
+            st.text_area("Course Outline", value=course_outline_string) #检查下可以写到这里不，如果是空值就写到循环后面
 
             vdb_state = st.text("Constructing vector database from provided materials...")
-            embeddings_df, faiss_index = constructVDB(file_paths)
+            embeddings_df, faiss_index = constructVDB(temp_file_paths)
             vdb_state.text("Constructing vector database from provided materials...Done")
             
             count_generating_content = 0
