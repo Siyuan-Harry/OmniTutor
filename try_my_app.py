@@ -202,11 +202,11 @@ def app():
         btn = st.button('submit')
     
     
-    col1, col2 = st.columns([0.6,0.4], gap='large')
+    col1, col2 = st.columns([0.8,0.6], gap='large')
 
     with col1:
-        st.text_area("Course Outline", "This area is filled with course outline", disabled=True)
-        st.text_area("Course Content", 'This area is filled with course content', disabled=False)
+        st.text_area("Course Outline")
+        st.text_area("Course Content")
         if btn:
             temp_file_paths = []
             with st.spinner("Processing file..."):
