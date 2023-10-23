@@ -194,7 +194,7 @@ def main(file_paths, num_lessons):
 
 def app():
     st.title("OmniTutor v0.0.1")
-    st.divider() 
+
     with st.sidebar:
         st.image("https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/20231021212525.png")
         added_files = st.file_uploader('Upload .md file', type=['.md'], accept_multiple_files=True)
