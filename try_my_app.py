@@ -224,11 +224,11 @@ def app():
         # Add user message to chat history
 
     with col2:
-        st.caption(''':blue[AI Assistant]: Ask me any questions related to this coourse and I'll give you direct answer. :sunglasses:''')
+        st.caption(''':blue[AI Assistant]: Ask this TA any questions related to this course and get direct answers. :sunglasses:''')
             # Set a default model
 
         with st.chat_message("assistant"):
-            st.write("Hello👋, how can I help you today? ;)")
+            st.write("Hello👋, how can I help you today? :happy:")
         if "openai_model" not in st.session_state:
             st.session_state["openai_model"] = "gpt-3.5-turbo"
 
