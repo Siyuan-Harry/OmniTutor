@@ -202,7 +202,7 @@ def app():
         btn = st.button('submit')
     
     
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns(0.7,0.3)
 
     with col1:
         st.text_area("Course Outline")
@@ -238,7 +238,7 @@ def app():
         # Add user message to chat history
 
     with col2:
-        st.title("chatbot assistant")
+        st.title("🤖️assistant")
 
         if prompt:
             st.session_state.messages.append({"role": "user", "content": prompt})
