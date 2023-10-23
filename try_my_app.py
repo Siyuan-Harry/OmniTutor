@@ -226,6 +226,9 @@ def app():
     with col2:
         st.caption(''':blue[AI Assistant]: Ask me any questions related to this coourse and I'll give you direct answer. :sunglasses:''')
             # Set a default model
+
+        with st.chat_message("assistant"):
+            st.write("Hello👋, how can I help you today? ;)")
         if "openai_model" not in st.session_state:
             st.session_state["openai_model"] = "gpt-3.5-turbo"
 
