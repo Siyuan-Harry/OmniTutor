@@ -107,7 +107,7 @@ def constructVDB(file_paths):
     for filename in file_paths:
         with open(filename, 'r') as f:
             content = f.read()
-            for chunk in chunkstring(content, 500):
+            for chunk in chunkstring(content, 1024):
                 chunks.append(chunk)
     chunk_df = pd.DataFrame(chunks, columns=['chunk'])
 
@@ -210,15 +210,14 @@ def app():
     with st.sidebar:
         st.image("https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/20231021212525.png")
         added_files = st.file_uploader('Upload .md file', type=['.md'], accept_multiple_files=True)
-        num_lessons = st.slider('How many lessons do you want this course to have?', min_value=2, max_value=9, value=3, step=1)
+        num_lessons = st.slider('How many lessons do you want this course to have?', min_value=5, max_value=20, value=10, step=1)
         btn = st.button('submit')
     
     
     col1, col2 = st.columns([0.6,0.4], gap='large')
 
     with col1:
-        st.text_area("Course Outline")
-        st.text_area("Course Content")
+        
         if btn:
             temp_file_paths = []
             with st.spinner("Processing file..."):
@@ -232,7 +231,7 @@ def app():
             st.text_area("Course Outline", value=courseOutline)
             st.text_area("Course Content", value=course_content_list)
 
-    prompt = st.chat_input("What is up?")
+    prompt = st.chat_input("Enter your questions when learning...")
         # Add user message to chat history
 
     with col2:
