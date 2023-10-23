@@ -203,44 +203,44 @@ def app():
     
     
     col1, col2 = st.columns(2)
+    
+    if prompt := st.chat_input("What is up?"):
+        # Add user message to chat history
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        # Display user message in chat message container
 
-    with col1:
-        if btn:
-            temp_file_paths = []
-            with st.spinner("Processing file..."):
-                for added_file in added_files:
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as tmp:
-                        tmp.write(added_file.getvalue())
-                        tmp_path = tmp.name
-                        temp_file_paths.append(tmp_path)
-            courseOutline, course_content_list = main(temp_file_paths, num_lessons)
+        with col1:
+            if btn:
+                temp_file_paths = []
+                with st.spinner("Processing file..."):
+                    for added_file in added_files:
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as tmp:
+                            tmp.write(added_file.getvalue())
+                            tmp_path = tmp.name
+                            temp_file_paths.append(tmp_path)
+                courseOutline, course_content_list = main(temp_file_paths, num_lessons)
 
-            st.text_area("Course Outline", value=courseOutline)
-            st.text_area("Course Content", value=course_content_list)
+                st.text_area("Course Outline", value=courseOutline)
+                st.text_area("Course Content", value=course_content_list)
 
-    with col2:
-        st.title("chatbot assistant")
+        with col2:
+            st.title("chatbot assistant")
 
-        # Set a default model
-        if "openai_model" not in st.session_state:
-            st.session_state["openai_model"] = "gpt-3.5-turbo"
+            # Set a default model
+            if "openai_model" not in st.session_state:
+                st.session_state["openai_model"] = "gpt-3.5-turbo"
 
-        # Initialize chat history
-        if "messages" not in st.session_state:
-            st.session_state.messages = []
+            # Initialize chat history
+            if "messages" not in st.session_state:
+                st.session_state.messages = []
 
-        # Display chat messages from history on app rerun
-        for message in st.session_state.messages:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+            # Display chat messages from history on app rerun
+            for message in st.session_state.messages:
+                with st.chat_message(message["role"]):
+                    st.markdown(message["content"])
 
-        #这里的session.state就是保存了这个对话会话的一些基本信息和设置
+            #这里的session.state就是保存了这个对话会话的一些基本信息和设置
 
-        # Accept user input
-        if prompt := st.chat_input("What is up?"):
-            # Add user message to chat history
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            # Display user message in chat message container
             with st.chat_message("user"):
                 st.markdown(prompt)
             # Display assistant response in chat message container
