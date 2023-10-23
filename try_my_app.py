@@ -10,6 +10,7 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from collections import Counter
 import nltk
+import time
 
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
@@ -161,17 +162,17 @@ def searchVDB(search_sentence, paraphrase_embeddings_df, index):
 def generateCourse(topic, materials):
 
     #调用gpt4 API生成一节课的内容
-    system_message = 'You are a great AI teacher and linguist, skilled at writing structed and easy-to-understand course script based on given lesson topic and knowledge materials.'
+    system_message = 'You are a great AI teacher and linguist, skilled at writing informative and easy-to-understand course script based on given lesson topic and knowledge materials.'
 
     user_message = f"""You are a great AI teacher and linguist,
-            skilled at writing structed and easy-to-understand course script based on given lesson topic and knowledge materials.
+            skilled at writing informative and easy-to-understand course script based on given lesson topic and knowledge materials.
             You should write a course for new hands, they need detailed and vivid explaination to understand the topic. 
             Here are general steps of creating a well-designed course. Please follow them step-by-step:
             Step 1. Write down the teaching purpose of the lesson initially in the script.
             Step 2. Write down the outline of this lesson (outline is aligned to the teaching purpose), then follow the outline to write the content.
-            Step 3. Review the content,add some examples to the core concepts of this lesson, making sure examples are familiar with learner. Each core concepts should at least with one example.
+            Step 3. Review the content,add some examples (including code example) to the core concepts of this lesson, making sure examples are familiar with learner. Each core concepts should at least with one example.
             Step 4. Review the content again, make some analogies or metaphors to the concepts that come up frequently to make the explanation of them more easier to understand.
-            Make soure all these steps are considered when writing the lesson script content.
+            Make sure all these steps are considered when writing the lesson script content.
             Your lesson topic and abstract is within the 「」 quotes, and the knowledge materials are within the 【】 brackets.
             lesson topic and abstract: 「{topic}」,
             knowledge materials related to this lesson：【{materials} 】
@@ -188,22 +189,6 @@ def generateCourse(topic, materials):
     response = get_completion_from_messages(messages)
     return response
 
-
-def main(file_paths, num_lessons):
-    #该程序要实现的目的：根据用户上传的文档（小于等于3个，每个文档不超过xx字），自动地为他生成，可以教会他的课程内容，保存为md文档。
-
-    courseOutline = courseOutlineGenerating(file_paths, num_lessons)
-    embeddings_df, faiss_index = constructVDB(file_paths)
-    num = 0
-    course_content_list = []
-    for lesson in courseOutline:
-        num += 1
-        retrievedChunksList = searchVDB(lesson, embeddings_df, faiss_index)
-        courseContent = generateCourse(lesson, retrievedChunksList)
-        course_content_list.append(courseContent)
-
-    return courseOutline, course_content_list
-
 def app():
     st.title("OmniTutor v0.0.1")
 
@@ -211,25 +196,49 @@ def app():
         st.image("https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/20231021212525.png")
         added_files = st.file_uploader('Upload .md file', type=['.md'], accept_multiple_files=True)
         num_lessons = st.slider('How many lessons do you want this course to have?', min_value=5, max_value=20, value=10, step=1)
-        btn = st.button('submit')
+        btn_outline = st.button('submit')
     
     
     col1, col2 = st.columns([0.6,0.4], gap='large')
 
     with col1:
         
-        if btn:
+        if btn_outline:
             temp_file_paths = []
-            with st.spinner("Processing file..."):
-                for added_file in added_files:
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as tmp:
-                        tmp.write(added_file.getvalue())
-                        tmp_path = tmp.name
-                        temp_file_paths.append(tmp_path)
-            courseOutline, course_content_list = main(temp_file_paths, num_lessons)
+            file_proc_state = st.text("Processing file...")
+            for added_file in added_files:
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as tmp:
+                    tmp.write(added_file.getvalue())
+                    tmp_path = tmp.name
+                    temp_file_paths.append(tmp_path)
+            file_proc_state.text("Processing file...Done")
 
-            st.text_area("Course Outline", value=courseOutline)
-            st.text_area("Course Content", value=course_content_list)
+            outline_generating_state = st.text("Generating Course Oueline...")
+            course_outline_list = courseOutlineGenerating(temp_file_paths, num_lessons)
+            outline_generating_state.text("Generating Course Oueline...Done")
+
+            course_outline_string = ''
+            outline_area = st.text_area("Course Outline", value=course_outline_string) #检查下可以写到这里不，如果是空值就写到循环后面
+            lessons_count = 0
+            for outline in course_outline_list:
+                lessons_count += 1
+                course_outline_string.append(f"{lessons_count}." + outline[0] + '\n')
+                course_outline_string.append(outline[1] + '\n\n')
+                time.sleep(1)
+                outline_area.value = course_outline_string
+
+            vdb_state = st.text("Constructing vector database from provided materials...")
+            embeddings_df, faiss_index = constructVDB(file_paths)
+            vdb_state.text("Constructing vector database from provided materials...Done")
+            
+            count_generating_content = 0
+            for lesson in course_outline_list:
+                count_generating_content += 1
+                content_generating_state = st.text(f"Writing content for lesson {count_generating_content}...")
+                retrievedChunksList = searchVDB(lesson, embeddings_df, faiss_index)
+                courseContent = generateCourse(lesson, retrievedChunksList)
+                content_generating_state.text(f"Writing content for lesson {count_generating_content}...Done")
+                st.text_area("Course Content", value=courseContent)
 
     prompt = st.chat_input("Enter your questions when learning...")
         # Add user message to chat history
