@@ -202,7 +202,7 @@ def app():
         btn = st.button('submit')
     
     
-    col1, col2 = st.columns(3)
+    col1, col2 = st.columns(2)
 
     with col1:
         if btn:
