@@ -238,10 +238,7 @@ def app():
         # Add user message to chat history
 
     with col2:
-        st.markdown(''' ### AI Assistant
-                    ## 🦜
-                    Ask me any questions related to this coourse and I'll give you direct answer.
-                    ''')
+        st.caption(''':blue[AI Assistant]: Ask me any questions related to this coourse and I'll give you direct answer. :sunglasses:''')
 
         if prompt:
             st.session_state.messages.append({"role": "user", "content": prompt})
