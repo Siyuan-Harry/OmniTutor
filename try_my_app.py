@@ -202,7 +202,7 @@ def app():
         btn = st.button('submit')
     
     
-    col1, col2 = st.columns([0.7,0.3], gap='medium')
+    col1, col2 = st.columns([0.6,0.4], gap='large')
 
     with col1:
         st.text_area("Course Outline")
@@ -238,7 +238,10 @@ def app():
         # Add user message to chat history
 
     with col2:
-        st.markdown(" ### AI Assistant ")
+        st.markdown(''' ### AI Assistant
+                    ## 🦜
+                    Ask me any questions related to this coourse and I'll give you direct answer.
+                    ''')
 
         if prompt:
             st.session_state.messages.append({"role": "user", "content": prompt})
