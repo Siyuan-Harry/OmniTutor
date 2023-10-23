@@ -61,18 +61,21 @@ def get_completion_from_messages(messages, model="gpt-4", temperature=0):
         return response.choices[0].message["content"]
 
 #调用gpt API生成课程大纲 + 每节课解释，随后输出为md文档。并在课程内一直保留着
-def genarating_outline(summarized_materials, num_lessons):
+def genarating_outline(keywords, num_lessons):
 
     system_message = 'You are a great AI teacher and linguist, skilled at create course outline based on summarized knowledge materials.'
     user_message = f"""You are a great AI teacher and linguist,
             skilled at generating course outline based on keywords of the course.
-            Based on keywords provided, you should carefully design a course by outputting its outline.
-            Through learning this course, learner should understand those key concepts.
-            keywords: {summarized_materials}
+            Based on keywords provided, you should carefully design a course outline. 
+            Requirements: Through learning this course, learner should understand those key concepts.
+            Key concepts: {keywords}
             you should output course outline in a python list format, Do not include anything else except that python list in your output.
             Example output format:
             [[name_lesson1, abstract_lesson1],[name_lesson2, abstrct_lesson2]]
+            In the example, you can see each element in this list consists of two parts: the "name_lesson" part is the name of the lesson, and the "abstract_lesson" part is the one-sentence description of the lesson, intruduces knowledge it contained. 
+            for each lesson in this course, you should provide these two information and organize them as exemplified.
             for this course, you should design {num_lessons} lessons in total.
+            Start the work now.
             """
     messages =  [
                 {'role':'system',
@@ -158,13 +161,22 @@ def searchVDB(search_sentence, paraphrase_embeddings_df, index):
 def generateCourse(topic, materials):
 
     #调用gpt4 API生成一节课的内容
-    system_message = 'You are a great AI teacher and linguist, skilled at generating course content based on given lesson topic and knowledge materials.'
+    system_message = 'You are a great AI teacher and linguist, skilled at writing structed and easy-to-understand course script based on given lesson topic and knowledge materials.'
 
     user_message = f"""You are a great AI teacher and linguist,
-            skilled at generating course content based on given lesson topic and knowledge materials.
+            skilled at writing structed and easy-to-understand course script based on given lesson topic and knowledge materials.
+            You should write a course for new hands, they need detailed and vivid explaination to understand the topic. 
+            Here are general steps of creating a well-designed course. Please follow them step-by-step:
+            Step 1. Write down the teaching purpose of the lesson initially in the script.
+            Step 2. Write down the outline of this lesson (outline is aligned to the teaching purpose), then follow the outline to write the content.
+            Step 3. Review the content,add some examples to the core concepts of this lesson, making sure examples are familiar with learner. Each core concepts should at least with one example.
+            Step 4. Review the content again, make some analogies or metaphors to the concepts that come up frequently to make the explanation of them more easier to understand.
+            Make soure all these steps are considered when writing the lesson script content.
             Your lesson topic and abstract is within the 「」 quotes, and the knowledge materials are within the 【】 brackets.
             lesson topic and abstract: 「{topic}」,
-            knowledge materials：【{materials} 】"""
+            knowledge materials related to this lesson：【{materials} 】
+            Start writting the script of this lesson now.
+            """
 
     messages =  [
                 {'role':'system',
