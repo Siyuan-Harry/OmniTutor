@@ -222,8 +222,8 @@ def app():
             lessons_count = 0
             for outline in course_outline_list:
                 lessons_count += 1
-                course_outline_string.append(f"{lessons_count}." + outline[0] + '\n')
-                course_outline_string.append(outline[1] + '\n\n')
+                course_outline_string += f"{lessons_count}." + outline[0] + '\n'
+                course_outline_string += outline[1] + '\n\n'
                 time.sleep(1)
                 outline_area.value = course_outline_string
 
