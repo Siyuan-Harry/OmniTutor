@@ -202,7 +202,7 @@ def app():
         btn = st.button('submit')
     
     
-    col1, col2 = st.columns(0.7,0.3)
+    col1, col2 = st.columns([0.7,0.3])
 
     with col1:
         st.text_area("Course Outline")
