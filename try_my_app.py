@@ -99,7 +99,7 @@ def genarating_outline(keywords, num_lessons,language):
 
 def courseOutlineGenerating(file_paths, num_lessons, language):
     summarized_materials = get_keywords(file_paths)
-    course_outline = genarating_outline(summarized_materials, num_lessons)
+    course_outline = genarating_outline(summarized_materials, num_lessons, language)
     return course_outline
 
 def constructVDB(file_paths):
