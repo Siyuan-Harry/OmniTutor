@@ -97,7 +97,7 @@ def genarating_outline(keywords, num_lessons,language):
 
     return list_response
 
-def courseOutlineGenerating(file_paths, num_lessons):
+def courseOutlineGenerating(file_paths, num_lessons, language):
     summarized_materials = get_keywords(file_paths)
     course_outline = genarating_outline(summarized_materials, num_lessons)
     return course_outline
@@ -198,11 +198,11 @@ def app():
         st.image("https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/20231021212525.png")
         added_files = st.file_uploader('Upload .md file', type=['.md'], accept_multiple_files=True)
         num_lessons = st.slider('How many lessons do you want this course to have?', min_value=5, max_value=20, value=10, step=1)
-        btn_outline = st.button('submit')
         language = 'English'
         Chinese = st.checkbox('Output in Chinese')
         if Chinese:
             language = 'Chinese'
+        btn_outline = st.button('submit')
 
     
     col1, col2 = st.columns([0.6,0.4], gap='large')
