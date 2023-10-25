@@ -62,7 +62,7 @@ def get_completion_from_messages(messages, model="gpt-4", temperature=0):
         return response.choices[0].message["content"]
 
 #调用gpt API生成课程大纲 + 每节课解释，随后输出为md文档。并在课程内一直保留着
-def genarating_outline(keywords, num_lessons):
+def genarating_outline(keywords, num_lessons,language):
 
     system_message = 'You are a great AI teacher and linguist, skilled at create course outline based on summarized knowledge materials.'
     user_message = f"""You are a great AI teacher and linguist,
@@ -76,6 +76,7 @@ def genarating_outline(keywords, num_lessons):
             In the example, you can see each element in this list consists of two parts: the "name_lesson" part is the name of the lesson, and the "abstract_lesson" part is the one-sentence description of the lesson, intruduces knowledge it contained. 
             for each lesson in this course, you should provide these two information and organize them as exemplified.
             for this course, you should design {num_lessons} lessons in total.
+            the course outline should be written in {language}.
             Start the work now.
             """
     messages =  [
@@ -159,7 +160,7 @@ def searchVDB(search_sentence, paraphrase_embeddings_df, index):
 
     return retrieved_chunks_list
 
-def generateCourse(topic, materials):
+def generateCourse(topic, materials, language):
 
     #调用gpt4 API生成一节课的内容
     system_message = 'You are a great AI teacher and linguist, skilled at writing informative and easy-to-understand course script based on given lesson topic and knowledge materials.'
@@ -176,6 +177,7 @@ def generateCourse(topic, materials):
             Your lesson topic and abstract is within the 「」 quotes, and the knowledge materials are within the 【】 brackets.
             lesson topic and abstract: 「{topic}」,
             knowledge materials related to this lesson：【{materials} 】
+            the script should be witten in {language}.
             Start writting the script of this lesson now.
             """
 
@@ -197,7 +199,11 @@ def app():
         added_files = st.file_uploader('Upload .md file', type=['.md'], accept_multiple_files=True)
         num_lessons = st.slider('How many lessons do you want this course to have?', min_value=5, max_value=20, value=10, step=1)
         btn_outline = st.button('submit')
-    
+        language = 'English'
+        Chinese = st.toggle('Activate feature')
+        if Chinese:
+            language = 'Chinese'
+
     
     col1, col2 = st.columns([0.6,0.4], gap='large')
 
@@ -214,7 +220,7 @@ def app():
             file_proc_state.text("Processing file...Done")
 
             outline_generating_state = st.text("Generating Course Oueline...")
-            course_outline_list = courseOutlineGenerating(temp_file_paths, num_lessons)
+            course_outline_list = courseOutlineGenerating(temp_file_paths, num_lessons, language)
             outline_generating_state.text("Generating Course Oueline...Done")
 
             course_outline_string = ''
@@ -224,7 +230,8 @@ def app():
                 course_outline_string += f"{lessons_count}." + outline[0] + '\n'
                 course_outline_string += outline[1] + '\n\n'
                 #time.sleep(1)
-            st.text_area("Course Outline", value=course_outline_string) #检查下可以写到这里不，如果是空值就写到循环后面
+            with st.expander("Check the course outline", expanded=False):
+                    st.write(course_outline_string)
 
             vdb_state = st.text("Constructing vector database from provided materials...")
             embeddings_df, faiss_index = constructVDB(temp_file_paths)
@@ -235,9 +242,11 @@ def app():
                 count_generating_content += 1
                 content_generating_state = st.text(f"Writing content for lesson {count_generating_content}...")
                 retrievedChunksList = searchVDB(lesson, embeddings_df, faiss_index)
-                courseContent = generateCourse(lesson, retrievedChunksList)
+                courseContent = generateCourse(lesson, retrievedChunksList, language)
                 content_generating_state.text(f"Writing content for lesson {count_generating_content}...Done")
-                st.text_area("Course Content", value=courseContent)
+                #st.text_area("Course Content", value=courseContent)
+                with st.expander(f"Learn the lesson {count_generating_content} ", expanded=False):
+                    st.markdown(courseContent)
 
     prompt = st.chat_input("Enter your questions when learning...")
         # Add user message to chat history
