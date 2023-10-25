@@ -200,7 +200,7 @@ def app():
         num_lessons = st.slider('How many lessons do you want this course to have?', min_value=5, max_value=20, value=10, step=1)
         btn_outline = st.button('submit')
         language = 'English'
-        Chinese = st.toggle('Activate feature')
+        Chinese = st.toggle('Output in Chinese')
         if Chinese:
             language = 'Chinese'
 
