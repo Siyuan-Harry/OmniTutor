@@ -141,23 +141,26 @@ def constructVDB(file_paths):
 
 def searchVDB(search_sentence, paraphrase_embeddings_df, index):
     #从向量数据库中检索相应文段
-    data = paraphrase_embeddings_df
-    embeddings = data.iloc[:, 1:].values  # All columns except the first (chunk text)
-    embeddings = np.ascontiguousarray(embeddings, dtype=np.float32)
+    try:
+        data = paraphrase_embeddings_df
+        embeddings = data.iloc[:, 1:].values  # All columns except the first (chunk text)
+        embeddings = np.ascontiguousarray(embeddings, dtype=np.float32)
 
-    model = SentenceTransformer('paraphrase-mpnet-base-v2')
-    sentence_embedding = model.encode([search_sentence])
+        model = SentenceTransformer('paraphrase-mpnet-base-v2')
+        sentence_embedding = model.encode([search_sentence])
 
-    # Ensuring the sentence embedding is in the correct format
-    sentence_embedding = np.ascontiguousarray(sentence_embedding, dtype=np.float32)
-    # Searching for the top 3 nearest neighbors in the FAISS index
-    D, I = index.search(sentence_embedding, k=3)
-    # Printing the top 3 most similar text chunks
-    retrieved_chunks_list = []
+        # Ensuring the sentence embedding is in the correct format
+        sentence_embedding = np.ascontiguousarray(sentence_embedding, dtype=np.float32)
+        # Searching for the top 3 nearest neighbors in the FAISS index
+        D, I = index.search(sentence_embedding, k=3)
+        # Printing the top 3 most similar text chunks
+        retrieved_chunks_list = []
+        for idx in I[0]:
+            retrieved_chunks_list.append(data.iloc[idx].chunk)
 
-    for idx in I[0]:
-        retrieved_chunks_list.append(data.iloc[idx].chunk)
-
+    except Exception:
+        retrieved_chunks_list = []
+        
     return retrieved_chunks_list
 
 def generateCourse(topic, materials, language):
@@ -170,9 +173,9 @@ def generateCourse(topic, materials, language):
             You should write a course for new hands, they need detailed and vivid explaination to understand the topic. 
             Here are general steps of creating a well-designed course. Please follow them step-by-step:
             Step 1. Write down the teaching purpose of the lesson initially in the script.
-            Step 2. Write down the outline of this lesson (outline is aligned to the teaching purpose), then follow the outline to write the content.
+            Step 2. Write down the outline of this lesson (outline is aligned to the teaching purpose), then follow the outline to write the content. Make sure every concept in the outline is explined adequately in the course.
             Step 3. Review the content,add some examples (including code example) to the core concepts of this lesson, making sure examples are familiar with learner. Each core concepts should at least with one example.
-            Step 4. Review the content again, make some analogies or metaphors to the concepts that come up frequently to make the explanation of them more easier to understand.
+            Step 4. Review the content again, add some analogies or metaphors to the concepts that come up frequently to make the explanation of them more easier to understand.
             Make sure all these steps are considered when writing the lesson script content.
             Your lesson topic and abstract is within the 「」 quotes, and the knowledge materials are within the 【】 brackets.
             lesson topic and abstract: 「{topic}」,
@@ -207,46 +210,46 @@ def app():
     with st.sidebar:
         st.image("https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/20231021212525.png")
         added_files = st.file_uploader('Upload .md file', type=['.md'], accept_multiple_files=True)
-        num_lessons = st.slider('How many lessons do you want this course to have?', min_value=5, max_value=20, value=10, step=1)
+        num_lessons = st.slider('How many lessons do you want this course to have?', min_value=5, max_value=19, value=10, step=1)
         language = 'English'
         Chinese = st.checkbox('Output in Chinese')
         if Chinese:
             language = 'Chinese'
-        btn_outline = st.button('submit')
+        btn = st.button('submit')
 
     
-    col1, col2 = st.columns([0.6,0.4], gap='large')
-
-    with col1:
+    col1, col2 = st.columns([0.6,0.4])
         
-        if btn_outline:
-            temp_file_paths = []
-            file_proc_state = st.text("Processing file...")
-            for added_file in added_files:
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as tmp:
-                    tmp.write(added_file.getvalue())
-                    tmp_path = tmp.name
-                    temp_file_paths.append(tmp_path)
-            file_proc_state.text("Processing file...Done")
+    if btn:
+        temp_file_paths = []
+        file_proc_state = st.text("Processing file...")
+        for added_file in added_files:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as tmp:
+                tmp.write(added_file.getvalue())
+                tmp_path = tmp.name
+                temp_file_paths.append(tmp_path)
+        file_proc_state.text("Processing file...Done")
 
-            outline_generating_state = st.text("Generating Course Oueline...")
-            course_outline_list = courseOutlineGenerating(temp_file_paths, num_lessons, language)
-            outline_generating_state.text("Generating Course Oueline...Done")
-
+        vdb_state = st.text("Constructing vector database from provided materials...")
+        embeddings_df, faiss_index = constructVDB(temp_file_paths)
+        vdb_state.text("Constructing vector database from provided materials...Done")
+        
+        outline_generating_state = st.text("Generating Course Oueline...")
+        course_outline_list = courseOutlineGenerating(temp_file_paths, num_lessons, language)
+        outline_generating_state.text("Generating Course Oueline...Done")
+        
+        with col1:
+            #把课程大纲打印出来
             course_outline_string = ''
             lessons_count = 0
             for outline in course_outline_list:
                 lessons_count += 1
                 course_outline_string += f"{lessons_count}." + outline[0] + '\n'
-                course_outline_string += outline[1] + '\n\n'
+                course_outline_string += '\n' + outline[1] + '\n\n'
                 #time.sleep(1)
             with st.expander("Check the course outline", expanded=False):
-                    st.write(course_outline_string)
+                        st.write(course_outline_string)
 
-            vdb_state = st.text("Constructing vector database from provided materials...")
-            embeddings_df, faiss_index = constructVDB(temp_file_paths)
-            vdb_state.text("Constructing vector database from provided materials...Done")
-            
             count_generating_content = 0
             for lesson in course_outline_list:
                 count_generating_content += 1
@@ -258,45 +261,45 @@ def app():
                 with st.expander(f"Learn the lesson {count_generating_content} ", expanded=False):
                     st.markdown(courseContent)
 
-    user_question = st.chat_input("Enter your questions when learning...")
-    retrieved_chunks_for_user = searchVDB(user_question, embeddings_df, faiss_index)
-    prompt = decorate_user_question(user_question, retrieved_chunks_for_user)
+        user_question = st.chat_input("Enter your questions when learning...")
 
-    with col2:
-        st.caption(''':blue[AI Assistant]: Ask this TA any questions related to this course and get direct answers. :sunglasses:''')
-            # Set a default model
+        with col2:
+            st.caption(''':blue[AI Assistant]: Ask this TA any questions related to this course and get direct answers. :sunglasses:''')
+                # Set a default model
 
-        with st.chat_message("assistant"):
-            st.write("Hello👋, how can I help you today? 😄")
-        if "openai_model" not in st.session_state:
-            st.session_state["openai_model"] = "gpt-3.5-turbo"
-
-        # Initialize chat history
-        if "messages" not in st.session_state:
-            st.session_state.messages = []
-
-        # Display chat messages from history on app rerun
-        for message in st.session_state.messages:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
-        #这里的session.state就是保存了这个对话会话的一些基本信息和设置
-        if prompt:
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            with st.chat_message("user"):
-                st.markdown(prompt)
-            # Display assistant response in chat message container
             with st.chat_message("assistant"):
-                message_placeholder = st.empty()
-                full_response = ""
-                for response in openai.ChatCompletion.create(
-                    model=st.session_state["openai_model"],
-                    messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
-                    stream=True,
-                ):
-                    full_response += response.choices[0].delta.get("content", "")
-                    message_placeholder.markdown(full_response + "▌")
-                message_placeholder.markdown(full_response)
-            st.session_state.messages.append({"role": "assistant", "content": full_response})
+                st.write("Hello👋, how can I help you today? 😄")
+            if "openai_model" not in st.session_state:
+                st.session_state["openai_model"] = "gpt-3.5-turbo"
+
+            # Initialize chat history
+            if "messages" not in st.session_state:
+                st.session_state.messages = []
+
+            # Display chat messages from history on app rerun
+            for message in st.session_state.messages:
+                with st.chat_message(message["role"]):
+                    st.markdown(message["content"])
+            #这里的session.state就是保存了这个对话会话的一些基本信息和设置
+            if user_question:
+                retrieved_chunks_for_user = searchVDB(user_question, embeddings_df, faiss_index)
+                prompt = decorate_user_question(user_question, retrieved_chunks_for_user)
+                st.session_state.messages.append({"role": "user", "content": prompt})
+                with st.chat_message("user"):
+                    st.markdown(user_question)
+                # Display assistant response in chat message container
+                with st.chat_message("assistant"):
+                    message_placeholder = st.empty()
+                    full_response = ""
+                    for response in openai.ChatCompletion.create(
+                        model=st.session_state["openai_model"],
+                        messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
+                        stream=True,
+                    ):
+                        full_response += response.choices[0].delta.get("content", "")
+                        message_placeholder.markdown(full_response + "▌")
+                    message_placeholder.markdown(full_response)
+                st.session_state.messages.append({"role": "assistant", "content": full_response})
 
     
 if __name__ == "__main__":
