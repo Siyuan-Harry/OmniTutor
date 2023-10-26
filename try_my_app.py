@@ -191,8 +191,18 @@ def generateCourse(topic, materials, language):
     response = get_completion_from_messages(messages)
     return response
 
+def decorate_user_question(user_question, retrieved_chunks_for_user):
+    decorated_prompt = f'''You're a brilliant teaching assistant, skilled at answer stundent's question based on given materials.
+    student's question: 「{user_question}」
+    related materials:【{retrieved_chunks_for_user}】
+    if the given materials are irrelavant to student's question, please use your own knowledge to answer the question.
+    You need to break down the student's question first, find out what he really wants to ask, and then try to give a comprehensive answer.
+    Start to answer the question now.
+    '''
+    return decorated_prompt
+
 def app():
-    st.title("OmniTutor v0.0.1")
+    st.title("OmniTutor v0.0.2")
 
     with st.sidebar:
         st.image("https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/20231021212525.png")
@@ -248,8 +258,9 @@ def app():
                 with st.expander(f"Learn the lesson {count_generating_content} ", expanded=False):
                     st.markdown(courseContent)
 
-    prompt = st.chat_input("Enter your questions when learning...")
-        # Add user message to chat history
+    user_question = st.chat_input("Enter your questions when learning...")
+    retrieved_chunks_for_user = searchVDB(user_question, embeddings_df, faiss_index)
+    prompt = decorate_user_question(user_question, retrieved_chunks_for_user)
 
     with col2:
         st.caption(''':blue[AI Assistant]: Ask this TA any questions related to this course and get direct answers. :sunglasses:''')
