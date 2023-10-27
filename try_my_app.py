@@ -109,7 +109,7 @@ def constructVDB(file_paths):
     for filename in file_paths:
         with open(filename, 'r') as f:
             content = f.read()
-            for chunk in chunkstring(content, 1024):
+            for chunk in chunkstring(content, 730):
                 chunks.append(chunk)
     chunk_df = pd.DataFrame(chunks, columns=['chunk'])
 
@@ -200,8 +200,9 @@ def decorate_user_question(user_question, retrieved_chunks_for_user):
     student's question: 「{user_question}」
     related materials:【{retrieved_chunks_for_user}】
     if the given materials are irrelavant to student's question, please use your own knowledge to answer the question.
-    You need to break down the student's question first, find out what he really wants to ask, and then try to give a comprehensive answer.
-    Start to answer the question now.
+    You need to break down the student's question first, find out what he really wants to ask, and then try your best to give a comprehensive answer.
+    The language you're answering in should aligned with what student is using.
+    Now you're talking to the student. Please answer.
     '''
     return decorated_prompt
 
@@ -209,14 +210,14 @@ def app():
     st.title("OmniTutor v0.0.2")
 
     if "openai_model" not in st.session_state:
-                st.session_state["openai_model"] = "gpt-3.5-turbo"
+        st.session_state["openai_model"] = "gpt-3.5-turbo"
         # Initialize chat history
     if "messages" not in st.session_state:
         st.session_state.messages = []
     # Display chat messages from history on app rerun
-        for message in st.session_state.messages:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
     with st.sidebar:
         st.image("https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/20231021212525.png")
@@ -227,9 +228,39 @@ def app():
         if Chinese:
             language = 'Chinese'
         btn = st.button('submit')
-
     
     col1, col2 = st.columns([0.6,0.4])
+
+    user_question = st.chat_input("Enter your questions when learning... (after submit your materials)")
+
+    with col2:
+        st.caption(''':blue[AI Assistant]: Ask this TA any questions related to this course and get direct answers. :sunglasses:''')
+            # Set a default model
+
+        with st.chat_message("assistant"):
+            st.write("Hello👋, how can I help you today? 😄")
+        
+        #这里的session.state就是保存了这个对话会话的一些基本信息和设置
+        if user_question:
+            retrieved_chunks_for_user = searchVDB(user_question, embeddings_df, faiss_index)
+            #retrieved_chunks_for_user = []
+            prompt = decorate_user_question(user_question, retrieved_chunks_for_user)
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.markdown(user_question)
+            # Display assistant response in chat message container
+            with st.chat_message("assistant"):
+                message_placeholder = st.empty()
+                full_response = ""
+                for response in openai.ChatCompletion.create(
+                    model=st.session_state["openai_model"],
+                    messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
+                    stream=True,
+                ):
+                    full_response += response.choices[0].delta.get("content", "")
+                    message_placeholder.markdown(full_response + "▌")
+                message_placeholder.markdown(full_response)
+            st.session_state.messages.append({"role": "assistant", "content": full_response})
         
     if btn:
         temp_file_paths = []
@@ -255,38 +286,6 @@ def app():
         file_proc_state.empty()
         vdb_state.empty()
         outline_generating_state.empty()
-
-        user_question = st.chat_input("Enter your questions when learning...")
-        
-
-        with col2:
-            st.caption(''':blue[AI Assistant]: Ask this TA any questions related to this course and get direct answers. :sunglasses:''')
-                # Set a default model
-
-            with st.chat_message("assistant"):
-                st.write("Hello👋, how can I help you today? 😄")
-            
-            #这里的session.state就是保存了这个对话会话的一些基本信息和设置
-            if user_question:
-                #retrieved_chunks_for_user = searchVDB(user_question, embeddings_df, faiss_index)
-                retrieved_chunks_for_user = []
-                prompt = decorate_user_question(user_question, retrieved_chunks_for_user)
-                st.session_state.messages.append({"role": "user", "content": prompt})
-                with st.chat_message("user"):
-                    st.markdown(user_question)
-                # Display assistant response in chat message container
-                with st.chat_message("assistant"):
-                    message_placeholder = st.empty()
-                    full_response = ""
-                    for response in openai.ChatCompletion.create(
-                        model=st.session_state["openai_model"],
-                        messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
-                        stream=True,
-                    ):
-                        full_response += response.choices[0].delta.get("content", "")
-                        message_placeholder.markdown(full_response + "▌")
-                    message_placeholder.markdown(full_response)
-                st.session_state.messages.append({"role": "assistant", "content": full_response})
         
         with col1:
             st.text("Processing file...Done")
