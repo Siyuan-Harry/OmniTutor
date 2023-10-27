@@ -171,12 +171,11 @@ def generateCourse(topic, materials, language):
     user_message = f"""You are a great AI teacher and linguist,
             skilled at writing informative and easy-to-understand course script based on given lesson topic and knowledge materials.
             You should write a course for new hands, they need detailed and vivid explaination to understand the topic. 
-            Here are general steps of creating a well-designed course. Please follow them step-by-step:
+            Here are coursethat need to be folloed step-by-step:
             Step 1. Write down the teaching purpose of the lesson initially in the script.
             Step 2. Write down the outline of this lesson (outline is aligned to the teaching purpose), then follow the outline to write the content. Make sure every concept in the outline is explined adequately in the course.
-            Step 3. Review the content,add some examples (including code example) to the core concepts of this lesson, making sure examples are familiar with learner. Each core concepts should at least with one example.
-            Step 4. Review the content again, add some analogies or metaphors to the concepts that come up frequently to make the explanation of them more easier to understand.
-            Make sure all these steps are considered when writing the lesson script content.
+            
+            Make sure all these  are considered when writing the lesson script content.
             Your lesson topic and abstract is within the 「」 quotes, and the knowledge materials are within the 【】 brackets.
             lesson topic and abstract: 「{topic}」,
             knowledge materials related to this lesson：【{materials} 】
@@ -244,33 +243,6 @@ def app():
         file_proc_state.empty()
         vdb_state.empty()
         outline_generating_state.empty()
-        
-        with col1:
-            st.text("Processing file...Done")
-            st.text("Constructing vector database from provided materials...Done")
-            st.text("Generating Course Outline...Done")
-
-            #把课程大纲打印出来
-            course_outline_string = ''
-            lessons_count = 0
-            for outline in course_outline_list:
-                lessons_count += 1
-                course_outline_string += f"{lessons_count}." + outline[0]
-                course_outline_string += '\n' + outline[1] + '\n\n'
-                #time.sleep(1)
-            with st.expander("Check the course outline", expanded=False):
-                        st.write(course_outline_string)
-
-            count_generating_content = 0
-            for lesson in course_outline_list:
-                count_generating_content += 1
-                content_generating_state = st.text(f"Writing content for lesson {count_generating_content}...")
-                retrievedChunksList = searchVDB(lesson, embeddings_df, faiss_index)
-                courseContent = generateCourse(lesson, retrievedChunksList, language)
-                content_generating_state.text(f"Writing content for lesson {count_generating_content}...Done")
-                #st.text_area("Course Content", value=courseContent)
-                with st.expander(f"Learn the lesson {count_generating_content} ", expanded=False):
-                    st.markdown(courseContent)
 
         user_question = st.chat_input("Enter your questions when learning...")
         if "openai_model" not in st.session_state:
@@ -311,7 +283,33 @@ def app():
                         message_placeholder.markdown(full_response + "▌")
                     message_placeholder.markdown(full_response)
                 st.session_state.messages.append({"role": "assistant", "content": full_response})
+        
+        with col1:
+            st.text("Processing file...Done")
+            st.text("Constructing vector database from provided materials...Done")
+            st.text("Generating Course Outline...Done")
 
+            #把课程大纲打印出来
+            course_outline_string = ''
+            lessons_count = 0
+            for outline in course_outline_list:
+                lessons_count += 1
+                course_outline_string += f"{lessons_count}." + outline[0]
+                course_outline_string += '\n' + outline[1] + '\n\n'
+                #time.sleep(1)
+            with st.expander("Check the course outline", expanded=False):
+                        st.write(course_outline_string)
+
+            count_generating_content = 0
+            for lesson in course_outline_list:
+                count_generating_content += 1
+                content_generating_state = st.text(f"Writing content for lesson {count_generating_content}...")
+                retrievedChunksList = searchVDB(lesson, embeddings_df, faiss_index)
+                courseContent = generateCourse(lesson, retrievedChunksList, language)
+                content_generating_state.text(f"Writing content for lesson {count_generating_content}...Done")
+                #st.text_area("Course Content", value=courseContent)
+                with st.expander(f"Learn the lesson {count_generating_content} ", expanded=False):
+                    st.markdown(courseContent)
     
 if __name__ == "__main__":
     app()
