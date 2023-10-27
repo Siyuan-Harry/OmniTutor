@@ -273,6 +273,15 @@ def app():
                     st.markdown(courseContent)
 
         user_question = st.chat_input("Enter your questions when learning...")
+        if "openai_model" not in st.session_state:
+                st.session_state["openai_model"] = "gpt-3.5-turbo"
+        # Initialize chat history
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
+        # Display chat messages from history on app rerun
+            for message in st.session_state.messages:
+                with st.chat_message(message["role"]):
+                    st.markdown(message["content"])
 
         with col2:
             st.caption(''':blue[AI Assistant]: Ask this TA any questions related to this course and get direct answers. :sunglasses:''')
@@ -280,17 +289,7 @@ def app():
 
             with st.chat_message("assistant"):
                 st.write("Hello👋, how can I help you today? 😄")
-            if "openai_model" not in st.session_state:
-                st.session_state["openai_model"] = "gpt-3.5-turbo"
-
-            # Initialize chat history
-            if "messages" not in st.session_state:
-                st.session_state.messages = []
-
-            # Display chat messages from history on app rerun
-            for message in st.session_state.messages:
-                with st.chat_message(message["role"]):
-                    st.markdown(message["content"])
+            
             #这里的session.state就是保存了这个对话会话的一些基本信息和设置
             if user_question:
                 #retrieved_chunks_for_user = searchVDB(user_question, embeddings_df, faiss_index)
