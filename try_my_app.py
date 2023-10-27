@@ -207,7 +207,7 @@ def decorate_user_question(user_question, retrieved_chunks_for_user):
     return decorated_prompt
 
 @st.cache_data
-def initialize_app(added_files):
+def initialize_app(added_files, num_lessons):
     temp_file_paths = []
     file_proc_state = st.empty()
     file_proc_state.text("Processing file...")
@@ -290,7 +290,7 @@ def app():
             st.session_state.messages.append({"role": "assistant", "content": full_response})
         
     if btn:
-        embeddings_df, faiss_index, course_outline_list = initialize_app(added_files)
+        embeddings_df, faiss_index, course_outline_list = initialize_app(added_files, num_lessons)
         
         with col1:
             st.text("Processing file...Done")
