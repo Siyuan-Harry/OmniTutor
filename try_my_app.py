@@ -207,7 +207,7 @@ def decorate_user_question(user_question, retrieved_chunks_for_user):
     return decorated_prompt
 
 @st.cache_data
-def initialize_app(added_files, num_lessons):
+def initialize_app(added_files, num_lessons, language):
     temp_file_paths = []
     file_proc_state = st.empty()
     file_proc_state.text("Processing file...")
@@ -260,7 +260,7 @@ def app():
             st.markdown(message["content"])
         
     if btn:
-        embeddings_df, faiss_index, course_outline_list = initialize_app(added_files, num_lessons)
+        embeddings_df, faiss_index, course_outline_list = initialize_app(added_files, num_lessons, language)
         
         with col1:
             st.text("Processing file...Done")
@@ -290,7 +290,7 @@ def app():
                     st.markdown(courseContent)
 
         user_question = st.chat_input("Enter your questions when learning...")
-        
+
         with col2:
             st.caption(''':blue[AI Assistant]: Ask this TA any questions related to this course and get direct answers. :sunglasses:''')
                 # Set a default model
