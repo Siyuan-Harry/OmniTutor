@@ -171,11 +171,13 @@ def generateCourse(topic, materials, language):
     user_message = f"""You are a great AI teacher and linguist,
             skilled at writing informative and easy-to-understand course script based on given lesson topic and knowledge materials.
             You should write a course for new hands, they need detailed and vivid explaination to understand the topic. 
-            Here are coursethat need to be folloed step-by-step:
+            A high-quality course should meet requirements below:
+            (1) Contains enough facts, data and figures to be convincing
+            (2) The internal narrative is layered and logical, not a simple pile of items
+            Make sure all these requirements are considered when writing the lesson script content.
+            Please follow this procedure step-by-step when disgning the course:
             Step 1. Write down the teaching purpose of the lesson initially in the script.
             Step 2. Write down the outline of this lesson (outline is aligned to the teaching purpose), then follow the outline to write the content. Make sure every concept in the outline is explined adequately in the course.
-            
-            Make sure all these  are considered when writing the lesson script content.
             Your lesson topic and abstract is within the 「」 quotes, and the knowledge materials are within the 【】 brackets.
             lesson topic and abstract: 「{topic}」,
             knowledge materials related to this lesson：【{materials} 】
@@ -205,6 +207,16 @@ def decorate_user_question(user_question, retrieved_chunks_for_user):
 
 def app():
     st.title("OmniTutor v0.0.2")
+
+    if "openai_model" not in st.session_state:
+                st.session_state["openai_model"] = "gpt-3.5-turbo"
+        # Initialize chat history
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+    # Display chat messages from history on app rerun
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
 
     with st.sidebar:
         st.image("https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/20231021212525.png")
@@ -245,15 +257,7 @@ def app():
         outline_generating_state.empty()
 
         user_question = st.chat_input("Enter your questions when learning...")
-        if "openai_model" not in st.session_state:
-                st.session_state["openai_model"] = "gpt-3.5-turbo"
-        # Initialize chat history
-        if "messages" not in st.session_state:
-            st.session_state.messages = []
-        # Display chat messages from history on app rerun
-            for message in st.session_state.messages:
-                with st.chat_message(message["role"]):
-                    st.markdown(message["content"])
+        
 
         with col2:
             st.caption(''':blue[AI Assistant]: Ask this TA any questions related to this course and get direct answers. :sunglasses:''')
