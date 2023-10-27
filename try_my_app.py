@@ -237,7 +237,7 @@ def app():
         vdb_state.text("Constructing vector database from provided materials...Done")
         
         outline_generating_state = st.empty()
-        outline_generating_state.text("Generating Course Oueline...")
+        outline_generating_state.text("Generating Course Outline...")
         course_outline_list = courseOutlineGenerating(temp_file_paths, num_lessons, language)
         outline_generating_state.text("Generating Course Outline...Done")
 
@@ -255,7 +255,7 @@ def app():
             lessons_count = 0
             for outline in course_outline_list:
                 lessons_count += 1
-                course_outline_string += f"{lessons_count}." + outline[0] + '\n'
+                course_outline_string += f"{lessons_count}." + outline[0]
                 course_outline_string += '\n' + outline[1] + '\n\n'
                 #time.sleep(1)
             with st.expander("Check the course outline", expanded=False):
@@ -293,7 +293,8 @@ def app():
                     st.markdown(message["content"])
             #这里的session.state就是保存了这个对话会话的一些基本信息和设置
             if user_question:
-                retrieved_chunks_for_user = searchVDB(user_question, embeddings_df, faiss_index)
+                #retrieved_chunks_for_user = searchVDB(user_question, embeddings_df, faiss_index)
+                retrieved_chunks_for_user = []
                 prompt = decorate_user_question(user_question, retrieved_chunks_for_user)
                 st.session_state.messages.append({"role": "user", "content": prompt})
                 with st.chat_message("user"):
