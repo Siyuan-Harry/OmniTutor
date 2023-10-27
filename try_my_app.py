@@ -206,18 +206,36 @@ def decorate_user_question(user_question, retrieved_chunks_for_user):
     '''
     return decorated_prompt
 
+@st.cache_data
+def initialize_app(added_files):
+    temp_file_paths = []
+    file_proc_state = st.empty()
+    file_proc_state.text("Processing file...")
+    for added_file in added_files:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as tmp:
+            tmp.write(added_file.getvalue())
+            tmp_path = tmp.name
+            temp_file_paths.append(tmp_path)
+    file_proc_state.text("Processing file...Done")
+
+    vdb_state = st.empty()
+    vdb_state.text("Constructing vector database from provided materials...")
+    embeddings_df, faiss_index = constructVDB(temp_file_paths)
+    vdb_state.text("Constructing vector database from provided materials...Done")
+    
+    outline_generating_state = st.empty()
+    outline_generating_state.text("Generating Course Outline...")
+    course_outline_list = courseOutlineGenerating(temp_file_paths, num_lessons, language)
+    outline_generating_state.text("Generating Course Outline...Done")
+
+    file_proc_state.empty()
+    vdb_state.empty()
+    outline_generating_state.empty()
+
+    return embeddings_df, faiss_index, course_outline_list
+
 def app():
     st.title("OmniTutor v0.0.2")
-
-    if "openai_model" not in st.session_state:
-        st.session_state["openai_model"] = "gpt-3.5-turbo"
-        # Initialize chat history
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-    # Display chat messages from history on app rerun
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
 
     with st.sidebar:
         st.image("https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/20231021212525.png")
@@ -231,7 +249,16 @@ def app():
     
     col1, col2 = st.columns([0.6,0.4])
 
-    user_question = st.chat_input("Enter your questions when learning... (after submit your materials)")
+    if "openai_model" not in st.session_state:
+        st.session_state["openai_model"] = "gpt-3.5-turbo"
+        # Initialize chat history
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+    # Display chat messages from history on app rerun
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+    user_question = st.chat_input("Enter your questions when learning...")
 
     with col2:
         st.caption(''':blue[AI Assistant]: Ask this TA any questions related to this course and get direct answers. :sunglasses:''')
@@ -263,29 +290,7 @@ def app():
             st.session_state.messages.append({"role": "assistant", "content": full_response})
         
     if btn:
-        temp_file_paths = []
-        file_proc_state = st.empty()
-        file_proc_state.text("Processing file...")
-        for added_file in added_files:
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as tmp:
-                tmp.write(added_file.getvalue())
-                tmp_path = tmp.name
-                temp_file_paths.append(tmp_path)
-        file_proc_state.text("Processing file...Done")
-
-        vdb_state = st.empty()
-        vdb_state.text("Constructing vector database from provided materials...")
-        embeddings_df, faiss_index = constructVDB(temp_file_paths)
-        vdb_state.text("Constructing vector database from provided materials...Done")
-        
-        outline_generating_state = st.empty()
-        outline_generating_state.text("Generating Course Outline...")
-        course_outline_list = courseOutlineGenerating(temp_file_paths, num_lessons, language)
-        outline_generating_state.text("Generating Course Outline...Done")
-
-        file_proc_state.empty()
-        vdb_state.empty()
-        outline_generating_state.empty()
+        embeddings_df, faiss_index, course_outline_list = initialize_app(added_files)
         
         with col1:
             st.text("Processing file...Done")
