@@ -222,7 +222,8 @@ def app():
         
     if btn:
         temp_file_paths = []
-        file_proc_state = st.text("Processing file...")
+        file_proc_state = st.empty()
+        file_proc_state.text("Processing file...")
         for added_file in added_files:
             with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as tmp:
                 tmp.write(added_file.getvalue())
@@ -230,15 +231,25 @@ def app():
                 temp_file_paths.append(tmp_path)
         file_proc_state.text("Processing file...Done")
 
-        vdb_state = st.text("Constructing vector database from provided materials...")
+        vdb_state = st.empty()
+        vdb_state.text("Constructing vector database from provided materials...")
         embeddings_df, faiss_index = constructVDB(temp_file_paths)
         vdb_state.text("Constructing vector database from provided materials...Done")
         
-        outline_generating_state = st.text("Generating Course Oueline...")
+        outline_generating_state = st.empty()
+        outline_generating_state.text("Generating Course Oueline...")
         course_outline_list = courseOutlineGenerating(temp_file_paths, num_lessons, language)
-        outline_generating_state.text("Generating Course Oueline...Done")
+        outline_generating_state.text("Generating Course Outline...Done")
+
+        file_proc_state.empty()
+        vdb_state.empty()
+        outline_generating_state.empty()
         
         with col1:
+            st.text("Processing file...Done")
+            st.text("Constructing vector database from provided materials...Done")
+            st.text("Generating Course Outline...Done")
+
             #把课程大纲打印出来
             course_outline_string = ''
             lessons_count = 0
