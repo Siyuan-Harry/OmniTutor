@@ -220,6 +220,7 @@ def initialize_app(added_files, num_lessons, language):
 
     vdb_state = st.empty()
     vdb_state.text("Constructing vector database from provided materials...")
+    global embeddings_df, faiss_index
     embeddings_df, faiss_index = constructVDB(temp_file_paths)
     vdb_state.text("Constructing vector database from provided materials...Done")
     
@@ -270,6 +271,7 @@ def app():
         
         #这里的session.state就是保存了这个对话会话的一些基本信息和设置
         if user_question:
+
             retrieved_chunks_for_user = searchVDB(user_question, embeddings_df, faiss_index)
             #retrieved_chunks_for_user = []
             prompt = decorate_user_question(user_question, retrieved_chunks_for_user)
