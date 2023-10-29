@@ -220,7 +220,6 @@ def initialize_app(added_files, num_lessons, language):
 
     vdb_state = st.empty()
     vdb_state.text("Constructing vector database from provided materials...")
-    global embeddings_df, faiss_index
     embeddings_df, faiss_index = constructVDB(temp_file_paths)
     vdb_state.text("Constructing vector database from provided materials...Done")
     
@@ -260,6 +259,38 @@ def app():
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
     
+    
+    if btn:
+        global embeddings_df, faiss_index, course_outline_list
+        embeddings_df, faiss_index, course_outline_list = initialize_app(added_files, num_lessons, language)
+        
+        with col1:
+            st.text("Processing file...Done")
+            st.text("Constructing vector database from provided materials...Done")
+            st.text("Generating Course Outline...Done")
+
+            #把课程大纲打印出来
+            course_outline_string = ''
+            lessons_count = 0
+            for outline in course_outline_list:
+                lessons_count += 1
+                course_outline_string += f"{lessons_count}." + outline[0]
+                course_outline_string += '\n' + outline[1] + '\n\n'
+                #time.sleep(1)
+            with st.expander("Check the course outline", expanded=False):
+                        st.write(course_outline_string)
+
+            count_generating_content = 0
+            for lesson in course_outline_list:
+                count_generating_content += 1
+                content_generating_state = st.text(f"Writing content for lesson {count_generating_content}...")
+                retrievedChunksList = searchVDB(lesson, embeddings_df, faiss_index)
+                courseContent = generateCourse(lesson, retrievedChunksList, language)
+                content_generating_state.text(f"Writing content for lesson {count_generating_content}...Done")
+                #st.text_area("Course Content", value=courseContent)
+                with st.expander(f"Learn the lesson {count_generating_content} ", expanded=False):
+                    st.markdown(courseContent)
+    
     user_question = st.chat_input("Enter your questions when learning...")
 
     with col2:
@@ -292,36 +323,6 @@ def app():
                 message_placeholder.markdown(full_response)
             st.session_state.messages.append({"role": "assistant", "content": full_response})
         
-    if btn:
-        embeddings_df, faiss_index, course_outline_list = initialize_app(added_files, num_lessons, language)
-        
-        with col1:
-            st.text("Processing file...Done")
-            st.text("Constructing vector database from provided materials...Done")
-            st.text("Generating Course Outline...Done")
-
-            #把课程大纲打印出来
-            course_outline_string = ''
-            lessons_count = 0
-            for outline in course_outline_list:
-                lessons_count += 1
-                course_outline_string += f"{lessons_count}." + outline[0]
-                course_outline_string += '\n' + outline[1] + '\n\n'
-                #time.sleep(1)
-            with st.expander("Check the course outline", expanded=False):
-                        st.write(course_outline_string)
-
-            count_generating_content = 0
-            for lesson in course_outline_list:
-                count_generating_content += 1
-                content_generating_state = st.text(f"Writing content for lesson {count_generating_content}...")
-                retrievedChunksList = searchVDB(lesson, embeddings_df, faiss_index)
-                courseContent = generateCourse(lesson, retrievedChunksList, language)
-                content_generating_state.text(f"Writing content for lesson {count_generating_content}...Done")
-                #st.text_area("Course Content", value=courseContent)
-                with st.expander(f"Learn the lesson {count_generating_content} ", expanded=False):
-                    st.markdown(courseContent)
-
     
     
 if __name__ == "__main__":
