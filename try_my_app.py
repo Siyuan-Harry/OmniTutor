@@ -102,6 +102,7 @@ def courseOutlineGenerating(file_paths, num_lessons, language):
     course_outline = genarating_outline(summarized_materials, num_lessons, language)
     return course_outline
 
+@st.cache_data
 def constructVDB(file_paths):
 #把KM拆解为chunks
 
@@ -259,70 +260,72 @@ def app():
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
     
+    user_question = st.chat_input("Enter your questions when learning...")
     
     if btn:
         global embeddings_df, faiss_index, course_outline_list
         embeddings_df, faiss_index, course_outline_list = initialize_app(added_files, num_lessons, language)
-        
-        with col1:
-            st.text("Processing file...Done")
-            st.text("Constructing vector database from provided materials...Done")
-            st.text("Generating Course Outline...Done")
 
-            #把课程大纲打印出来
-            course_outline_string = ''
-            lessons_count = 0
-            for outline in course_outline_list:
-                lessons_count += 1
-                course_outline_string += f"{lessons_count}." + outline[0]
-                course_outline_string += '\n' + outline[1] + '\n\n'
-                #time.sleep(1)
-            with st.expander("Check the course outline", expanded=False):
-                        st.write(course_outline_string)
+        with col2:
+            st.caption(''':blue[AI Assistant]: Ask this TA any questions related to this course and get direct answers. :sunglasses:''')
+                # Set a default model
 
-            count_generating_content = 0
-            for lesson in course_outline_list:
-                count_generating_content += 1
-                content_generating_state = st.text(f"Writing content for lesson {count_generating_content}...")
-                retrievedChunksList = searchVDB(lesson, embeddings_df, faiss_index)
-                courseContent = generateCourse(lesson, retrievedChunksList, language)
-                content_generating_state.text(f"Writing content for lesson {count_generating_content}...Done")
-                #st.text_area("Course Content", value=courseContent)
-                with st.expander(f"Learn the lesson {count_generating_content} ", expanded=False):
-                    st.markdown(courseContent)
-    
-    user_question = st.chat_input("Enter your questions when learning...")
-
-    with col2:
-        st.caption(''':blue[AI Assistant]: Ask this TA any questions related to this course and get direct answers. :sunglasses:''')
-            # Set a default model
-
-        with st.chat_message("assistant"):
-            st.write("Hello👋, how can I help you today? 😄")
-        
-        #这里的session.state就是保存了这个对话会话的一些基本信息和设置
-        if user_question:
-
-            retrieved_chunks_for_user = searchVDB(user_question, embeddings_df, faiss_index)
-            #retrieved_chunks_for_user = []
-            prompt = decorate_user_question(user_question, retrieved_chunks_for_user)
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            with st.chat_message("user"):
-                st.markdown(user_question)
-            # Display assistant response in chat message container
             with st.chat_message("assistant"):
-                message_placeholder = st.empty()
-                full_response = ""
-                for response in openai.ChatCompletion.create(
-                    model=st.session_state["openai_model"],
-                    messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
-                    stream=True,
-                ):
-                    full_response += response.choices[0].delta.get("content", "")
-                    message_placeholder.markdown(full_response + "▌")
-                message_placeholder.markdown(full_response)
-            st.session_state.messages.append({"role": "assistant", "content": full_response})
+                st.write("Hello👋, how can I help you today? 😄")
+            
+            #这里的session.state就是保存了这个对话会话的一些基本信息和设置
+            if user_question:
+                retrieved_chunks_for_user = searchVDB(user_question, embeddings_df, faiss_index)
+                #retrieved_chunks_for_user = []
+                prompt = decorate_user_question(user_question, retrieved_chunks_for_user)
+                st.session_state.messages.append({"role": "user", "content": prompt})
+                with st.chat_message("user"):
+                    st.markdown(user_question)
+                # Display assistant response in chat message container
+                with st.chat_message("assistant"):
+                    message_placeholder = st.empty()
+                    full_response = ""
+                    for response in openai.ChatCompletion.create(
+                        model=st.session_state["openai_model"],
+                        messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
+                        stream=True,
+                    ):
+                        full_response += response.choices[0].delta.get("content", "")
+                        message_placeholder.markdown(full_response + "▌")
+                    message_placeholder.markdown(full_response)
+                st.session_state.messages.append({"role": "assistant", "content": full_response})
         
+        
+    with col1:
+        st.text("Processing file...Done")
+        st.text("Constructing vector database from provided materials...Done")
+        st.text("Generating Course Outline...Done")
+
+        #把课程大纲打印出来
+        course_outline_string = ''
+        lessons_count = 0
+        for outline in course_outline_list:
+            lessons_count += 1
+            course_outline_string += f"{lessons_count}." + outline[0]
+            course_outline_string += '\n' + outline[1] + '\n\n'
+            #time.sleep(1)
+        with st.expander("Check the course outline", expanded=False):
+                    st.write(course_outline_string)
+
+        count_generating_content = 0
+        for lesson in course_outline_list:
+            count_generating_content += 1
+            content_generating_state = st.text(f"Writing content for lesson {count_generating_content}...")
+            retrievedChunksList = searchVDB(lesson, embeddings_df, faiss_index)
+            courseContent = generateCourse(lesson, retrievedChunksList, language)
+            content_generating_state.text(f"Writing content for lesson {count_generating_content}...Done")
+            #st.text_area("Course Content", value=courseContent)
+            with st.expander(f"Learn the lesson {count_generating_content} ", expanded=False):
+                st.markdown(courseContent)
+    
+    
+
+    
     
     
 if __name__ == "__main__":
