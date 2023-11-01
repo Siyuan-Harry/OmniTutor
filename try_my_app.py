@@ -3,6 +3,8 @@ import numpy as np
 import faiss
 import openai
 import tempfile
+from PyPDF2 import PdfReader
+import io
 from sentence_transformers import SentenceTransformer
 import streamlit as st
 from nltk.tokenize import word_tokenize
@@ -10,7 +12,6 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from collections import Counter
 import nltk
-import time
 
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
@@ -22,6 +23,14 @@ def download_nltk():
 
 def chunkstring(string, length):
         return (string[0+i:length+i] for i in range(0, len(string), length))
+
+
+def pdf_parser(input_pdf):
+    pdf = PdfReader(input_pdf)
+    pdf_content = ""
+    for page in pdf.pages:
+        pdf_content += page.extract_text()
+    return pdf_content
 
 def get_keywords(file_paths): #这里的重点是，对每一个file做尽可能简短且覆盖全面的summarization
     download_nltk()
@@ -102,7 +111,6 @@ def courseOutlineGenerating(file_paths, num_lessons, language):
     course_outline = genarating_outline(summarized_materials, num_lessons, language)
     return course_outline
 
-@st.cache_data
 def constructVDB(file_paths):
 #把KM拆解为chunks
 
@@ -125,8 +133,7 @@ def constructVDB(file_paths):
 
     #从embeddings到向量数据库
     # Load the embeddings
-    data = paraphrase_embeddings_df
-    embeddings = data.iloc[:, 1:].values  # All columns except the first (chunk text)
+    embeddings = paraphrase_embeddings_df.iloc[:, 1:].values  # All columns except the first (chunk text)
 
     # Ensure that the array is C-contiguous
     embeddings = np.ascontiguousarray(embeddings, dtype=np.float32)
@@ -165,7 +172,6 @@ def searchVDB(search_sentence, paraphrase_embeddings_df, index):
     return retrieved_chunks_list
 
 def generateCourse(topic, materials, language):
-
     #调用gpt4 API生成一节课的内容
     system_message = 'You are a great AI teacher and linguist, skilled at writing informative and easy-to-understand course script based on given lesson topic and knowledge materials.'
 
@@ -207,126 +213,202 @@ def decorate_user_question(user_question, retrieved_chunks_for_user):
     '''
     return decorated_prompt
 
-@st.cache_data
-def initialize_app(added_files, num_lessons, language):
+def initialize_file(added_files):
     temp_file_paths = []
-    file_proc_state = st.empty()
-    file_proc_state.text("Processing file...")
-    for added_file in added_files:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as tmp:
-            tmp.write(added_file.getvalue())
-            tmp_path = tmp.name
+    with st.spinner('Processing file...'):
+        for added_file in added_files:
+            if added_file.name.endswith(".pdf"):
+                string = pdf_parser(added_file)
+                with tempfile.NamedTemporaryFile(suffix=".md", delete=False) as tmp:
+                    tmp.write(string.encode("utf-8"))
+                    tmp_path = tmp.name
+            else:
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as tmp:
+                    tmp.write(added_file.getvalue())
+                    tmp_path = tmp.name
             temp_file_paths.append(tmp_path)
-    file_proc_state.text("Processing file...Done")
+    st.success('Processing file...Done')
+    return temp_file_paths
 
-    vdb_state = st.empty()
-    vdb_state.text("Constructing vector database from provided materials...")
-    embeddings_df, faiss_index = constructVDB(temp_file_paths)
-    vdb_state.text("Constructing vector database from provided materials...Done")
+def initialize_vdb(temp_file_paths):
+    with st.spinner('Constructing vector database from provided materials...'):
+        embeddings_df, faiss_index = constructVDB(temp_file_paths)
+    st.success("Constructing vector database from provided materials...Done")
+    return embeddings_df, faiss_index
+
+def initialize_outline(temp_file_paths, num_lessons, language):
+    with st.spinner('Generating Course Outline...'):
+        course_outline_list = courseOutlineGenerating(temp_file_paths, num_lessons, language)
+    st.success("Generating Course Outline...Done")
+    course_outline_string = ''
+    lessons_count = 0
+    for outline in course_outline_list:
+        lessons_count += 1
+        course_outline_string += f"{lessons_count}." + outline[0]
+        course_outline_string += '\n\n' + outline[1] + '\n\n'
+    with st.expander("Check the course outline", expanded=False):
+        st.write(course_outline_string)
     
-    outline_generating_state = st.empty()
-    outline_generating_state.text("Generating Course Outline...")
-    course_outline_list = courseOutlineGenerating(temp_file_paths, num_lessons, language)
-    outline_generating_state.text("Generating Course Outline...Done")
+    return course_outline_list
 
-    file_proc_state.empty()
-    vdb_state.empty()
-    outline_generating_state.empty()
+def initialize_content(course_outline_list, embeddings_df, faiss_index, language):
+    count_generating_content = 0
+    course_content_list = []
+    for lesson in course_outline_list:
+        count_generating_content += 1
+        with st.spinner(f"Writing content for lesson {count_generating_content}..."):
+            retrievedChunksList = searchVDB(lesson, embeddings_df, faiss_index)
+            courseContent = generateCourse(lesson, retrievedChunksList, language)
+            course_content_list.append(courseContent)
+        st.success(f"Writing content for lesson {count_generating_content}...Done")
+        with st.expander(f"Learn the lesson {count_generating_content} ", expanded=False):
+            st.markdown(courseContent)
 
-    return embeddings_df, faiss_index, course_outline_list
+    return course_content_list
+
+def regenerate_outline(course_outline_list):
+    try:
+        course_outline_string = ''
+        lessons_count = 0
+        for outline in course_outline_list:
+            lessons_count += 1
+            course_outline_string += f"{lessons_count}." + outline[0]
+            course_outline_string += '\n\n' + outline[1] + '\n\n'
+        with st.expander("Check the course outline", expanded=False):
+            st.write(course_outline_string)
+    except Exception:
+        pass
+
+def regenerate_content(course_content_list):
+    try:
+        count_generating_content = 0
+        for content in course_content_list:
+            count_generating_content += 1
+            with st.expander(f"Learn the lesson {count_generating_content} ", expanded=False):
+                st.markdown(content)
+    except Exception:
+        pass
 
 def app():
-    st.title("OmniTutor v0.0.2")
-
-    if "openai_model" not in st.session_state:
-        st.session_state["openai_model"] = "gpt-3.5-turbo"
-        # Initialize chat history
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
-    # Display chat messages from history on app rerun - 这部分不用session，利用好rerun
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
+    st.title("OmniTutor v0.1.0")
+    st.markdown("""
+        <style>
+            .footer {
+                position: fixed;
+                bottom: 0;
+                left: 10px;
+                width: auto;
+                background-color: transparent;
+                text-align: right;
+                padding-right: 10px;
+                padding-bottom: 10px;
+            }
+        </style>
+        <div class="footer">Made with ❤️ by Siyuan</div>
+    """, unsafe_allow_html=True)
     with st.sidebar:
         st.image("https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/20231021212525.png")
-        added_files = st.file_uploader('Upload .md file', type=['.md'], accept_multiple_files=True)
-        num_lessons = st.slider('How many lessons do you want this course to have?', min_value=3, max_value=14, value=5, step=1)
+        added_files = st.file_uploader('Upload .md and .pdf files, simultaneous mixed upload these types is supported.', type=['.md','.pdf'], accept_multiple_files=True)
+        num_lessons = st.slider('How many lessons do you want this course to have?', min_value=2, max_value=15, value=5, step=1)
         language = 'English'
         Chinese = st.checkbox('Output in Chinese')
         if Chinese:
             language = 'Chinese'
         btn = st.button('submit')
     
-    col1, col2 = st.columns([0.6,0.4])
+    if "description1" not in st.session_state:
+        st.session_state.description1 = ''
+    if "divider" not in st.session_state:
+        st.session_state.divider = ''
+    if "description2" not in st.session_state:
+        st.session_state.description2 = ''
+    if "embeddings_df" not in st.session_state:
+        st.session_state.embeddings_df = ''
+    if "faiss_index" not in st.session_state:
+        st.session_state.faiss_index = ''
+    if "course_outline_list" not in st.session_state:
+        st.session_state.course_outline_list = ''
+    if "course_content_list" not in st.session_state:
+        st.session_state.course_content_list = ''
+    if "openai_model" not in st.session_state:
+        st.session_state["openai_model"] = "gpt-3.5-turbo"
+        # Initialize chat history
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
     
-    user_question = st.chat_input("Enter your questions when learning...")
-    
+
+    st.session_state.description1 = st.markdown('''
+    :grey[An all-round teacher. A teaching assistant who really knows the subject]
+                               
+    :grey[Anything. Anywhere. All at once. ]
+    ''')
+    st.session_state.divider = st.divider()
+    st.session_state.description2 = st.markdown('''
+    <font color = grey> 👈 Upload learning materials in the sidebar, and touch "submit" button </font>
+                               
+    <font color = grey> 🎉 Ready to see what happens.. </font>
+
+    ''', unsafe_allow_html=True
+    )
+
+
     if btn:
+        st.session_state.description1.empty()
+        st.session_state.divider.empty()
+        st.session_state.description2.empty()
+
+        #initialize app
+        temp_file_paths = initialize_file(added_files)
+        st.session_state.embeddings_df, st.session_state.faiss_index = initialize_vdb(temp_file_paths)
+        st.session_state.course_outline_list = initialize_outline(temp_file_paths, num_lessons, language)
+        st.session_state.course_content_list = initialize_content(st.session_state.course_outline_list, st.session_state.embeddings_df, st.session_state.faiss_index, language)
+
+    col1, col2 = st.columns([0.6,0.4])
         
-        if "embeddings_df" and "faiss_index" and "course_outline_list" not in st.session_state:
-            st.session_state.embeddings_df, st.session_state.faiss_index, st.session_state.course_outline_list = initialize_app(added_files, num_lessons, language)
-        #embeddings_df, faiss_index, course_outline_list = initialize_app(added_files, num_lessons, language)
+    user_question = st.chat_input("Enter your questions when learning...")
+
+    if user_question:
         
         with col1:
-            st.text("Processing file...Done")
-            st.text("Constructing vector database from provided materials...Done")
-            st.text("Generating Course Outline...Done")
-
             #把课程大纲打印出来
-            course_outline_string = ''
-            lessons_count = 0
-            for outline in st.session_state.course_outline_list:
-                lessons_count += 1
-                course_outline_string += f"{lessons_count}." + outline[0]
-                course_outline_string += '\n' + outline[1] + '\n\n'
-                #time.sleep(1)
-            with st.expander("Check the course outline", expanded=False):
-                st.write(course_outline_string)
+            regenerate_outline(st.session_state.course_outline_list)
+            #把课程内容打印出来
+            regenerate_content(st.session_state.course_content_list)
 
-            count_generating_content = 0
-            for lesson in st.session_state.course_outline_list:
-                count_generating_content += 1
-                content_generating_state = st.text(f"Writing content for lesson {count_generating_content}...")
-                retrievedChunksList = searchVDB(lesson, st.session_state.embeddings_df, st.session_state.faiss_index)
-                courseContent = generateCourse(lesson, retrievedChunksList, language)
-                content_generating_state.text(f"Writing content for lesson {count_generating_content}...Done")
-                #st.text_area("Course Content", value=courseContent)
-                with st.expander(f"Learn the lesson {count_generating_content} ", expanded=False):
-                    st.markdown(courseContent)
-    
-    with col2:
+        with col2:
             st.caption(''':blue[AI Assistant]: Ask this TA any questions related to this course and get direct answers. :sunglasses:''')
                 # Set a default model
 
             with st.chat_message("assistant"):
                 st.write("Hello👋, how can I help you today? 😄")
-            
-            #这里的session.state就是保存了这个对话会话的一些基本信息和设置
-            if user_question:
-                retrieved_chunks_for_user = searchVDB(user_question, st.session_state.embeddings_df, st.session_state.faiss_index)
-                #retrieved_chunks_for_user = []
-                prompt = decorate_user_question(user_question, retrieved_chunks_for_user)
-                st.session_state.messages.append({"role": "user", "content": prompt})
-                with st.chat_message("user"):
-                    st.markdown(user_question)
-                # Display assistant response in chat message container
-                with st.chat_message("assistant"):
-                    message_placeholder = st.empty()
-                    full_response = ""
-                    for response in openai.ChatCompletion.create(
-                        model=st.session_state["openai_model"],
-                        messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
-                        stream=True,
-                    ):
-                        full_response += response.choices[0].delta.get("content", "")
-                        message_placeholder.markdown(full_response + "▌")
-                    message_placeholder.markdown(full_response)
-                st.session_state.messages.append({"role": "assistant", "content": full_response})
-    
-    
 
+            # Display chat messages from history on app rerun
+            for message in st.session_state.messages:
+                with st.chat_message(message["role"]):
+                    st.markdown(message["content"][0])
+            
+            # Display new user question.
+            with st.chat_message("user"):
+                st.markdown(user_question)
+
+            #这里的session.state就是保存了这个对话会话的一些基本信息和设置
+            retrieved_chunks_for_user = searchVDB(user_question, st.session_state.embeddings_df, st.session_state.faiss_index)
+            prompt = decorate_user_question(user_question, retrieved_chunks_for_user)
+            st.session_state.messages.append({"role": "user", "content": [user_question, prompt]})
+            
+            # Display assistant response in chat message container
+            with st.chat_message("assistant"):
+                message_placeholder = st.empty()
+                full_response = ""
+                for response in openai.ChatCompletion.create(
+                    model=st.session_state["openai_model"],
+                    messages=[{"role": "user", "content": prompt}],
+                    stream=True,
+                ):
+                    full_response += response.choices[0].delta.get("content", "")
+                    message_placeholder.markdown(full_response + "▌")
+                message_placeholder.markdown(full_response)
+            st.session_state.messages.append({"role": "assistant", "content": [full_response,1]})
     
     
     
