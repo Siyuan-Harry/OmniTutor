@@ -188,7 +188,7 @@ def generateCourse(topic, materials, language):
             Your lesson topic and abstract is within the 「」 quotes, and the knowledge materials are within the 【】 brackets.
             lesson topic and abstract: 「{topic}」,
             knowledge materials related to this lesson：【{materials} 】
-            the script should be witten in {language}.
+            the script should be witten in {language}, and mathematical symbols should be written in markdown form.
             Start writting the script of this lesson now.
             """
 
@@ -338,17 +338,18 @@ def app():
     
 
     st.session_state.description1 = st.markdown('''
-    :grey[An all-round teacher. A teaching assistant who really knows the subject]
-                               
-    :grey[Anything. Anywhere. All at once. ]
-    ''')
-    st.session_state.divider = st.divider()
+    > <font color = 'grey'> An all-round teacher. A teaching assistant who really knows the subject </font>
+    >
+    > <font color = 'grey'> Anything. Anywhere. All at once. </font> :100:
+    ''', unsafe_allow_html=True)
+    st.session_state.divider = st.subheader('How to use')
     st.session_state.description2 = st.markdown('''
-    <font color = grey> 👈 Upload learning materials in the sidebar, and touch "submit" button </font>
+    1. Upload learning materials in the 👈sidebar
+    2. Touch "submit" button 
                                
-    <font color = grey> 🎉 Ready to see what happens.. </font>
+    🎉 Get ready to see what happens..
 
-    ''', unsafe_allow_html=True
+    '''
     )
 
 
@@ -368,6 +369,9 @@ def app():
     user_question = st.chat_input("Enter your questions when learning...")
 
     if user_question:
+        st.session_state.description1.empty()
+        st.session_state.divider.empty()
+        st.session_state.description2.empty()
         
         with col1:
             #把课程大纲打印出来
