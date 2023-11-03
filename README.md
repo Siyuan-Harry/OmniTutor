@@ -81,4 +81,5 @@ This project is licensed under the MIT License. For more details, refer to the `
 ## Acknowledgements
 
 Thanks to the developers of Streamlit, FAISS, NLTK and OpenAI for their incredible tools that made this project possible.
+
 Special thanks to Xuying, as my mentor and colleague, who gave me most significant support during the whole process of this project from zero to one. 
