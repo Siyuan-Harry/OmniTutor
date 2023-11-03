@@ -1,6 +1,6 @@
 # OmniTutor
 
-![](https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/20231021212525.png)
+![](pic1.jpg)
 
 ## app links: 
 
