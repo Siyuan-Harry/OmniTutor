@@ -134,7 +134,6 @@ def constructVDB(file_paths):
     #从embeddings到向量数据库
     # Load the embeddings
     embeddings = paraphrase_embeddings_df.iloc[:, 1:].values  # All columns except the first (chunk text)
-
     # Ensure that the array is C-contiguous
     embeddings = np.ascontiguousarray(embeddings, dtype=np.float32)
     # Preparation for Faiss
@@ -171,24 +170,25 @@ def searchVDB(search_sentence, paraphrase_embeddings_df, index):
         
     return retrieved_chunks_list
 
-def generateCourse(topic, materials, language):
+def generateCourse(topic, materials, language, style_options):
     #调用gpt4 API生成一节课的内容
     system_message = 'You are a great AI teacher and linguist, skilled at writing informative and easy-to-understand course script based on given lesson topic and knowledge materials.'
 
     user_message = f"""You are a great AI teacher and linguist,
-            skilled at writing informative and easy-to-understand course script based on given lesson topic and knowledge materials.
-            You should write a course for new hands, they need detailed and vivid explaination to understand the topic. 
-            A high-quality course should meet requirements below:
-            (1) Contains enough facts, data and figures to be convincing
-            (2) The internal narrative is layered and logical, not a simple pile of items
-            Make sure all these requirements are considered when writing the lesson script content.
-            Please follow this procedure step-by-step when disgning the course:
-            Step 1. Write down the teaching purpose of the lesson initially in the script.
-            Step 2. Write down the outline of this lesson (outline is aligned to the teaching purpose), then follow the outline to write the content. Make sure every concept in the outline is explined adequately in the course.
-            Your lesson topic and abstract is within the 「」 quotes, and the knowledge materials are within the 【】 brackets.
-            lesson topic and abstract: 「{topic}」,
-            knowledge materials related to this lesson：【{materials} 】
-            the script should be witten in {language}, and mathematical symbols should be written in markdown form.
+            skilled at writing informative and easy-to-understand course script based on given lesson topic and knowledge materials.\n
+            You should write a course for new hands, they need detailed and vivid explaination to understand the topic. \n
+            A high-quality course should meet requirements below:\n
+            (1) Contains enough facts, data and figures to be convincing\n
+            (2) The internal narrative is layered and logical, not a simple pile of items\n
+            Make sure all these requirements are considered when writing the lesson script content.\n
+            Please follow this procedure step-by-step when disgning the course:\n
+            Step 1. Write down the teaching purpose of the lesson initially in the script. \n
+            Step 2. Write down the outline of this lesson (outline is aligned to the teaching purpose), then follow the outline to write the content. Make sure every concept in the outline is explined adequately in the course. \n
+            Your lesson topic and abstract is within the 「」 quotes, and the knowledge materials are within the 【】 brackets. \n
+            lesson topic and abstract: 「{topic}」, \n
+            knowledge materials related to this lesson：【{materials} 】 \n
+            the script should be witten in {language}, and mathematical symbols should be written in markdown form. \n
+            {style_options} \n
             Start writting the script of this lesson now.
             """
 
@@ -251,14 +251,14 @@ def initialize_outline(temp_file_paths, num_lessons, language):
     
     return course_outline_list
 
-def initialize_content(course_outline_list, embeddings_df, faiss_index, language):
+def initialize_content(course_outline_list, embeddings_df, faiss_index, language, style_options):
     count_generating_content = 0
     course_content_list = []
     for lesson in course_outline_list:
         count_generating_content += 1
         with st.spinner(f"Writing content for lesson {count_generating_content}..."):
             retrievedChunksList = searchVDB(lesson, embeddings_df, faiss_index)
-            courseContent = generateCourse(lesson, retrievedChunksList, language)
+            courseContent = generateCourse(lesson, retrievedChunksList, language, style_options)
             course_content_list.append(courseContent)
         st.success(f"Writing content for lesson {count_generating_content}...Done")
         with st.expander(f"Learn the lesson {count_generating_content} ", expanded=False):
@@ -289,6 +289,21 @@ def regenerate_content(course_content_list):
     except Exception:
         pass
 
+def add_prompt_course_style(selected_style_list):
+    initiate_prompt = 'Please be siginificantly aware that this course is requested to: \n'
+    customize_prompt = ''
+    if len(selected_style_list) != 0:
+        customize_prompt += initiate_prompt
+        for style in selected_style_list:
+            if style == "More examples":
+                customize_prompt += '- **contain more examples**. You should use your own knowledge to vividly exemplify key concepts occured in this course.\n'
+            elif style == "More excercises":
+                customize_prompt += '- **contain more excercises**. So last part of this lesson should be excercises.\n'
+            elif style == "Easier to learn":
+                customize_prompt += '- **Be easier to learn**. So you should use plain language to write the lesson script, and apply some metaphors & analogys wherever appropriate.\n'
+    
+    return customize_prompt
+
 def app():
     st.title("OmniTutor v0.1.0")
     st.markdown("""
@@ -296,7 +311,7 @@ def app():
             .footer {
                 position: fixed;
                 bottom: 0;
-                left: 10px;
+                right: 10px;
                 width: auto;
                 background-color: transparent;
                 text-align: right;
@@ -304,17 +319,25 @@ def app():
                 padding-bottom: 10px;
             }
         </style>
-        <div class="footer">Made with ❤️ by Siyuan</div>
+        <div class="footer">Made with 🧡 by Siyuan</div>
     """, unsafe_allow_html=True)
     with st.sidebar:
         st.image("https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/20231021212525.png")
-        added_files = st.file_uploader('Upload .md and .pdf files, simultaneous mixed upload these types is supported.', type=['.md','.pdf'], accept_multiple_files=True)
-        num_lessons = st.slider('How many lessons do you want this course to have?', min_value=2, max_value=15, value=5, step=1)
-        language = 'English'
-        Chinese = st.checkbox('Output in Chinese')
-        if Chinese:
-            language = 'Chinese'
-        btn = st.button('submit')
+        added_files = st.file_uploader('Upload .md or .pdf files, simultaneous mixed upload these types is supported.', type=['.md','.pdf'], accept_multiple_files=True)
+        with st.expander('Customize my course'):
+            num_lessons = st.slider('How many lessons do you want this course to have?', min_value=2, max_value=15, value=5, step=1)
+            custom_options = st.multiselect(
+                'Preferred teaching style :grey[(Recommend new users not to select)]',
+                ['More examples', 'More excercises', 'Easier to learn'],
+                max_selections = 2
+            )
+            style_options = add_prompt_course_style(custom_options)
+            language = 'English'
+            Chinese = st.checkbox('Output in Chinese')
+            if Chinese:
+                language = 'Chinese'
+            
+        btn = st.button('Generate my course!')
     
     if "description1" not in st.session_state:
         st.session_state.description1 = ''
@@ -345,13 +368,11 @@ def app():
     st.session_state.divider = st.subheader('How to use')
     st.session_state.description2 = st.markdown('''
     1. Upload learning materials in the 👈sidebar
-    2. Touch "submit" button 
+    2. Touch "Generate my course!" button 
                                
     🎉 Get ready to see what happens..
-
     '''
     )
-
 
     if btn:
         st.session_state.description1.empty()
@@ -362,10 +383,18 @@ def app():
         temp_file_paths = initialize_file(added_files)
         st.session_state.embeddings_df, st.session_state.faiss_index = initialize_vdb(temp_file_paths)
         st.session_state.course_outline_list = initialize_outline(temp_file_paths, num_lessons, language)
-        st.session_state.course_content_list = initialize_content(st.session_state.course_outline_list, st.session_state.embeddings_df, st.session_state.faiss_index, language)
+        st.session_state.course_content_list = initialize_content(st.session_state.course_outline_list, st.session_state.embeddings_df, st.session_state.faiss_index, language, style_options)
+
+        st.markdown('''
+                    > 🤔 <font color = 'grey'> **Not satisfied with this course?** Simply click "Generate my course!" button to regenerate a new one! </font>
+                    >
+                    > 😁 <font color = 'grey'> If the course is good enough for you, learn and enter questions related in the input box below 👇... </font>
+
+                    :blue[Wish you all the best in your learning journey :)]
+                    ''', unsafe_allow_html=True)
+                    
 
     col1, col2 = st.columns([0.6,0.4])
-        
     user_question = st.chat_input("Enter your questions when learning...")
 
     if user_question:
@@ -399,7 +428,7 @@ def app():
             retrieved_chunks_for_user = searchVDB(user_question, st.session_state.embeddings_df, st.session_state.faiss_index)
             prompt = decorate_user_question(user_question, retrieved_chunks_for_user)
             st.session_state.messages.append({"role": "user", "content": [user_question, prompt]})
-            
+
             # Display assistant response in chat message container
             with st.chat_message("assistant"):
                 message_placeholder = st.empty()
@@ -413,7 +442,6 @@ def app():
                     message_placeholder.markdown(full_response + "▌")
                 message_placeholder.markdown(full_response)
             st.session_state.messages.append({"role": "assistant", "content": [full_response,1]})
-    
     
     
 if __name__ == "__main__":
