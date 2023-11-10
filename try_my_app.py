@@ -400,6 +400,7 @@ def app():
         st.session_state.start_col1.empty()
         st.session_state.start_col2.empty()
         st.session_state.testing_expander.empty()
+        st.session_state.testing_expander_markdown.empty()
 
         #initialize app
         temp_file_paths = initialize_file(added_files)
