@@ -345,12 +345,8 @@ def app():
         st.session_state.start_col1 = st.empty()
     if "start_col2" not in st.session_state:
         st.session_state.start_col2 = st.empty()
-    if "testing_expander" not in st.session_state:
-        st.session_state.testing_expander = st.empty()
-    if "testing_markdown" not in st.session_state:
-        st.session_state.testing_markdown = st.empty()
-    if "testing_expander_markdown" not in st.session_state:
-        st.session_state.testing_expander_markdown = st.empty()
+    if "case_pay" not in st.session_state:
+        st.session_state.case_pay = st.empty()
     
     if "embeddings_df" not in st.session_state:
         st.session_state.embeddings_df = ''
@@ -387,21 +383,31 @@ def app():
         '''
         )
     with st.session_state.start_col2:
-        st.session_state.testing_markdown = st.markdown('hi!')
-        st.session_state.testing_expander = st.expander("See explanation")
-        with st.session_state.testing_expander:
-            st.session_state.testing_expander_markdown = st.markdown("hello!")
+        st.session_state.case_pay = st.markdown('''
+        ## Application Cases 使用案例
+
+
+        ## Support by donation 捐款支持
+        
+        因为每位用户的每次课程生成，都会产生一定的成本。个人开发者生存不易。
+        以下
+                                                
+        ## Contact me 联系我
+        
+        以下是开发者微信，欢迎
+        邮箱📮：
+                                                                                                                               
+                                                
+        ''', unsafe_allow_html=True)
     
 
     if btn:
         st.session_state.description1.empty()
         st.session_state.divider.empty()
         st.session_state.description2.empty()
-        st.session_state.start_col1.empty()
-        st.session_state.start_col2.empty()
-        st.session_state.testing_expander.empty()
-        st.session_state.testing_expander_markdown.empty()
-        st.session_state.testing_markdown.empty()
+        #st.session_state.start_col1.empty()
+        #st.session_state.start_col2.empty()
+        st.session_state.case_pay.empty()
 
         #initialize app
         temp_file_paths = initialize_file(added_files)
