@@ -370,16 +370,18 @@ def app():
         > 
         > Github Repo: https://github.com/Siyuan-Harry/OmniTutor 
 
-        ## ✨ Key features                                           
+        ### ✨ Key features                                           
         - 🧑‍🏫 **Concise and clear course creation**
-            
             Generated from your learning notes (**.md**) or any learning materials (**.pdf**)!
+                                                   
         - 📚 **All disciplines**
             
             Whether it's math, physics, literature, history or coding, OmniTutor covers it all.
+                                                   
         - ⚙️ **Customize your own course**
             
             Choose your preferred teaching style, lesson count and language.
+                                                   
         - ⚡️**Fast respond with trustable accuracy** 
             
             problem-solving chat with the AI teaching assistant who really understand the materials.
