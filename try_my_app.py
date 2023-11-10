@@ -336,11 +336,7 @@ def app():
         btn = st.button('Generate my course!')
     
     if "description1" not in st.session_state:
-        st.session_state.description1 = ''
-    if "divider" not in st.session_state:
-        st.session_state.divider = ''
-    if "description2" not in st.session_state:
-        st.session_state.description2 = ''
+        st.session_state.description = ''
     if "start_col1" not in st.session_state:
         st.session_state.start_col1 = st.empty()
     if "start_col2" not in st.session_state:
@@ -367,20 +363,20 @@ def app():
     st.session_state.start_col1, st.session_state.start_col2 = st.columns(2)
 
     with st.session_state.start_col1:
-        st.session_state.description1 = st.markdown('''
+        st.session_state.description = st.markdown('''
         > <font color = 'grey'> An all-round teacher. A teaching assistant who really knows the subject </font>
         > 
         > <font color = 'grey'> Anything. Anywhere. All at once. </font> :100:
         > 
         > Github Repo: https://github.com/Siyuan-Harry/OmniTutor 
-        ''', unsafe_allow_html=True)
-        st.session_state.divider = st.subheader('How to use')
-        st.session_state.description2 = st.markdown('''
+        
+        ## Get started
+                                                    
         1. Upload learning materials in the 👈sidebar
         2. Touch "Generate my course!" button 
                                 
         🎉 Get ready to see what happens..
-        '''
+        ''', unsafe_allow_html=True
         )
     with st.session_state.start_col2:
         st.session_state.case_pay = st.markdown('''
@@ -402,11 +398,9 @@ def app():
     
 
     if btn:
-        st.session_state.description1.empty()
-        st.session_state.divider.empty()
-        st.session_state.description2.empty()
-        #st.session_state.start_col1.empty()
-        #st.session_state.start_col2.empty()
+        st.session_state.start_col1.empty()
+        st.session_state.start_col2.empty()
+        st.session_state.description.empty()
         st.session_state.case_pay.empty()
 
         #initialize app
@@ -428,9 +422,10 @@ def app():
     user_question = st.chat_input("Enter your questions when learning...")
 
     if user_question:
-        st.session_state.description1.empty()
-        st.session_state.divider.empty()
-        st.session_state.description2.empty()
+        st.session_state.start_col1.empty()
+        st.session_state.start_col2.empty()
+        st.session_state.description.empty()
+        st.session_state.case_pay.empty()
         
         with col1:
             #把课程大纲打印出来
