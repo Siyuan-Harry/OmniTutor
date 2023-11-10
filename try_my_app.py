@@ -369,12 +369,23 @@ def app():
         > <font color = 'grey'> Anything. Anywhere. All at once. </font> :100:
         > 
         > Github Repo: https://github.com/Siyuan-Harry/OmniTutor 
+
+        ## ✨ Key features                                           
+        - 🧑‍🏫 **Concise and clear course creation**
+            Generated from your learning notes (**.md**) or any learning materials (**.pdf**)!
+        - 📚 **All disciplines**
+            Whether it's math, physics, literature, history or coding, OmniTutor covers it all.
+        - ⚙️ **Customize your own course**
+            Choose your preferred teaching style, lesson count and language.
+        - ⚡️**Fast respond with trustable accuracy** 
+            problem-solving chat with the AI teaching assistant who really understand the materials.
         
         ### 🏃‍♂️ Get started!
                                                     
-        1. Upload learning materials in the 👈sidebar
-        2. Unfold the "Customize my course" expander, then adjust teaching style, lesson count and language for your course
-        3. Touch "Generate my course!" button 
+        1. **Upload learning materials**: The upload widget in the sidebar supports PDF and .md files simutaenously.
+        2. **Customize your course**: By few clicks and swipes, adjusting teaching style, lesson count and language for your course.
+        3. **Start course generating**: Touch "Generate my course!" button in the sidebar, then watch how OmniTutor creates personal-customized course for you.
+        4. **Interactive learning**: Learn the course, and ask OmniTutor any questions related to this course whenever you encountered them.
                                 
         🎉 Get ready to see what happens..
         ''', unsafe_allow_html=True
