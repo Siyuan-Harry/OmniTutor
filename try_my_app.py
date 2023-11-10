@@ -349,6 +349,8 @@ def app():
         st.session_state.start_col2 = st.empty()
     if "testing_expander" not in st.session_state:
         st.session_state.testing_expander = st.empty()
+    if "testing_expander_markdown" not in st.session_state:
+        st.session_state.testing_expander_markdown = st.empty()
     
     if "embeddings_df" not in st.session_state:
         st.session_state.embeddings_df = ''
@@ -388,7 +390,7 @@ def app():
         st.markdown('hi!')
         st.session_state.testing_expander = st.expander("See explanation")
         with st.session_state.testing_expander:
-            st.markdown("hello!")
+            st.session_state.testing_expander_markdown("hello!")
     
 
     if btn:
