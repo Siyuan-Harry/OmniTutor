@@ -384,9 +384,9 @@ def app():
 
         > <font color = 'grey'>用OmniTutor学习Python...</font>
                                                 
-        <img src="https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/WX20231103-215001@2x.png"/>
+        <img src="https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/WX20231103-215001@2x.png" height = "200" />
                                                 
-        <img src="https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/WX20231103-214916@2x.png"/>
+        <img src="https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/WX20231103-214916@2x.png" height = "200" />
 
 
         ### 💰Support by donation 捐款支持
