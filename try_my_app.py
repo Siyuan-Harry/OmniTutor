@@ -72,7 +72,6 @@ def get_completion_from_messages(messages, model="gpt-4", temperature=0):
 
 #调用gpt API生成课程大纲 + 每节课解释，随后输出为md文档。并在课程内一直保留着
 def genarating_outline(keywords, num_lessons,language):
-
     system_message = 'You are a great AI teacher and linguist, skilled at create course outline based on summarized knowledge materials.'
     user_message = f"""You are a great AI teacher and linguist,
             skilled at generating course outline based on keywords of the course.
@@ -301,7 +300,6 @@ def add_prompt_course_style(selected_style_list):
                 customize_prompt += '- **contain more excercises**. So last part of this lesson should be excercises.\n'
             elif style == "Easier to learn":
                 customize_prompt += '- **Be easier to learn**. So you should use plain language to write the lesson script, and apply some metaphors & analogys wherever appropriate.\n'
-    
     return customize_prompt
 
 def app():
@@ -345,6 +343,12 @@ def app():
         st.session_state.divider = ''
     if "description2" not in st.session_state:
         st.session_state.description2 = ''
+    if "start_col1" not in st.session_state:
+        st.session_state.start_col1 = st.empty()
+    if "start_col2" not in st.session_state:
+        st.session_state.start_col2 = st.empty()
+    
+    
     if "embeddings_df" not in st.session_state:
         st.session_state.embeddings_df = ''
     if "faiss_index" not in st.session_state:
@@ -353,6 +357,7 @@ def app():
         st.session_state.course_outline_list = ''
     if "course_content_list" not in st.session_state:
         st.session_state.course_content_list = ''
+    
     if "openai_model" not in st.session_state:
         st.session_state["openai_model"] = "gpt-3.5-turbo"
         # Initialize chat history
@@ -360,24 +365,34 @@ def app():
         st.session_state.messages = []
     
 
-    st.session_state.description1 = st.markdown('''
-    > <font color = 'grey'> An all-round teacher. A teaching assistant who really knows the subject </font>
-    >
-    > <font color = 'grey'> Anything. Anywhere. All at once. </font> :100:
-    ''', unsafe_allow_html=True)
-    st.session_state.divider = st.subheader('How to use')
-    st.session_state.description2 = st.markdown('''
-    1. Upload learning materials in the 👈sidebar
-    2. Touch "Generate my course!" button 
-                               
-    🎉 Get ready to see what happens..
-    '''
-    )
+    st.session_state.start_col1, st.session_state.start_col2 = st.columns(2)
+
+    with st.session_state.start_col1:
+        st.session_state.description1 = st.markdown('''
+        > <font color = 'grey'> An all-round teacher. A teaching assistant who really knows the subject </font>
+        >
+        > <font color = 'grey'> Anything. Anywhere. All at once. </font> :100:
+        > 
+        > Github Repo: https://github.com/Siyuan-Harry/OmniTutor 
+        ''', unsafe_allow_html=True)
+        st.session_state.divider = st.subheader('How to use')
+        st.session_state.description2 = st.markdown('''
+        1. Upload learning materials in the 👈sidebar
+        2. Touch "Generate my course!" button 
+                                
+        🎉 Get ready to see what happens..
+        '''
+        )
+    with st.session_state.start_col2:
+        st.markdown("hello!")
+    
 
     if btn:
         st.session_state.description1.empty()
         st.session_state.divider.empty()
         st.session_state.description2.empty()
+        #st.session_state.start_col1.empty()
+        #st.session_state.start_col2.empty()
 
         #initialize app
         temp_file_paths = initialize_file(added_files)
