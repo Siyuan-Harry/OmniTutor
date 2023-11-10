@@ -384,6 +384,7 @@ def app():
         '''
         )
     with st.session_state.start_col2:
+        st.markdown('hi!')
         with st.expander("See explanation"):
             st.markdown("hello!")
     
