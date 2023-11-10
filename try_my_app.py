@@ -390,7 +390,7 @@ def app():
         st.markdown('hi!')
         st.session_state.testing_expander = st.expander("See explanation")
         with st.session_state.testing_expander:
-            st.session_state.testing_expander_markdown("hello!")
+            st.session_state.testing_expander_markdown = st.markdown("hello!")
     
 
     if btn:
