@@ -373,7 +373,7 @@ def app():
         ### 🏃‍♂️ Get started!
                                                     
         1. Upload learning materials in the 👈sidebar
-        2. Unfold the "Customize my course" expander, and adjust teaching style, lesson count and language for your course.
+        2. Unfold the "Customize my course" expander, then adjust teaching style, lesson count and language for your course
         3. Touch "Generate my course!" button 
                                 
         🎉 Get ready to see what happens..
@@ -394,9 +394,6 @@ def app():
         <img src="https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/WX20231103-215001@2x.png" height = "300" />
                                                 
         <img src="https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/WX20231103-214916@2x.png" height = "300" />
-
-                                                
-        😁 Have fun playing with OmniTutor!
         
         ---
 
