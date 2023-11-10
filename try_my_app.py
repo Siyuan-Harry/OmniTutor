@@ -70,7 +70,6 @@ def get_completion_from_messages(messages, model="gpt-4", temperature=0):
         )
         return response.choices[0].message["content"]
 
-#调用gpt API生成课程大纲 + 每节课解释，随后输出为md文档。并在课程内一直保留着
 def genarating_outline(keywords, num_lessons,language):
     system_message = 'You are a great AI teacher and linguist, skilled at create course outline based on summarized knowledge materials.'
     user_message = f"""You are a great AI teacher and linguist,
@@ -262,7 +261,6 @@ def initialize_content(course_outline_list, embeddings_df, faiss_index, language
         st.success(f"Writing content for lesson {count_generating_content}...Done")
         with st.expander(f"Learn the lesson {count_generating_content} ", expanded=False):
             st.markdown(courseContent)
-
     return course_content_list
 
 def regenerate_outline(course_outline_list):
@@ -349,6 +347,8 @@ def app():
         st.session_state.start_col2 = st.empty()
     if "testing_expander" not in st.session_state:
         st.session_state.testing_expander = st.empty()
+    if "testing_markdown" not in st.session_state:
+        st.session_state.testing_markdown = st.empty()
     if "testing_expander_markdown" not in st.session_state:
         st.session_state.testing_expander_markdown = st.empty()
     
@@ -373,7 +373,7 @@ def app():
     with st.session_state.start_col1:
         st.session_state.description1 = st.markdown('''
         > <font color = 'grey'> An all-round teacher. A teaching assistant who really knows the subject </font>
-        >
+        > 
         > <font color = 'grey'> Anything. Anywhere. All at once. </font> :100:
         > 
         > Github Repo: https://github.com/Siyuan-Harry/OmniTutor 
@@ -387,7 +387,7 @@ def app():
         '''
         )
     with st.session_state.start_col2:
-        st.markdown('hi!')
+        st.session_state.testing_markdown = st.markdown('hi!')
         st.session_state.testing_expander = st.expander("See explanation")
         with st.session_state.testing_expander:
             st.session_state.testing_expander_markdown = st.markdown("hello!")
@@ -401,6 +401,7 @@ def app():
         st.session_state.start_col2.empty()
         st.session_state.testing_expander.empty()
         st.session_state.testing_expander_markdown.empty()
+        st.session_state.testing_markdown.empty()
 
         #initialize app
         temp_file_paths = initialize_file(added_files)
