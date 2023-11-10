@@ -1,6 +1,6 @@
 # OmniTutor
 
-![](https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/20231021212525.png)
+![](pic1.jpg)
 
 ## app links: 
 
@@ -13,18 +13,23 @@ OmniTutor v0.1.0 is an all-round teacher, combined with a personalized teaching 
 ## Features
 
 - 🌍 **Anytime, anywhere**
+
     You no longer have to wait for a set class time or find an available teacher. OmniTutor is ready to provide you with answers and help you solve difficult problems.
 
 - 📚 **All disciplines**
+
     Whether it's math, physics, literature, history or coding, OmniTutor covers it all. It has a wide range of subject knowledge to meet your multi-faceted learning needs.
 
 - 🌐 **All available**
+
     You can interact with OmniTutor via text, *audio or video* (in the future). It provides you with real-time feedback and ensures that there are no obstacles in your learning process.
 
 - ⚡ **Act now**
+
     No need to wait a long time, your questions related to the course will be answered in an instant. The efficiency and speed of OmniTutor ensures that your learning process will not be interrupted.
 
 - 🚀 **An experience, always accompany**
+
     OmniTutor is like an all-round study companion, no matter where you are, it can help you to ensure that your learning journey is smooth and fun.
 
 OmniTutor - An all-round teacher and a personalized teaching assistant who really knows the subject, to help you solve all your learning problems, Make learning so simple: anything, anywhere, all at once.
@@ -75,4 +80,6 @@ This project is licensed under the MIT License. For more details, refer to the `
 
 ## Acknowledgements
 
-Special thanks to the developers of Streamlit, FAISS, NLTK and OpenAI for their incredible tools that made this project possible.
+Thanks to the developers of Streamlit, FAISS, NLTK and OpenAI for their incredible tools that made this project possible.
+
+Special thanks to Xuying Li, as my mentor and colleague, who gave me most significant support during the whole process of this project from zero to one. 
