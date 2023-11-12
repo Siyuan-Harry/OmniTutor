@@ -406,15 +406,15 @@ def app():
                                                 
         > <font color = 'grey'> 用OmniTutor阅读专业的论文! </font>                                        
 
-        <img src="https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/WX20231104-122256@2x%2016.03.49.png" height = "300" />
+        <img src="https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/WX20231104-122256@2x%2016.03.49.png" height = "200" />
                                                 
-        <img src="https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/WX20231104-113553@2x%202.png" height = "300" />
+        <img src="https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/WX20231104-113553@2x%202.png" height = "200" />
 
         > <font color = 'grey'> 用OmniTutor学习Python! </font>
                                                 
-        <img src="https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/WX20231103-215001@2x.png" height = "300" />
+        <img src="https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/WX20231103-215001@2x.png" height = "200" />
                                                 
-        <img src="https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/WX20231103-214916@2x.png" height = "300" />
+        <img src="https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/WX20231103-214916@2x.png" height = "200" />
         
         ---
 
