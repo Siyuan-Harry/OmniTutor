@@ -468,7 +468,8 @@ def app():
             st.session_state.description.empty()
             st.session_state.case_pay.empty()
             announce.empty()
-            st.write("请输入正确的API Key令牌")
+            divider.empty()
+            warning = st.write("请输入正确的API Key令牌")
                     
 
     col1, col2 = st.columns([0.6,0.4])
