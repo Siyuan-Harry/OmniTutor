@@ -11,9 +11,12 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from collections import Counter
+from langdetect import detect
+import jieba
+import jieba.analyse
 import nltk
 
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+openai.api_key = st.session_state["OPENAI_API_KEY"]
 
 @st.cache_data
 def download_nltk():
@@ -24,6 +27,12 @@ def download_nltk():
 def chunkstring(string, length):
         return (string[0+i:length+i] for i in range(0, len(string), length))
 
+def detect_language(text):
+    try:
+        return detect(text)
+    except:
+        return "Language detection failed"
+
 
 def pdf_parser(input_pdf):
     pdf = PdfReader(input_pdf)
@@ -32,7 +41,7 @@ def pdf_parser(input_pdf):
         pdf_content += page.extract_text()
     return pdf_content
 
-def get_keywords(file_paths): #这里的重点是，对每一个file做尽可能简短且覆盖全面的summarization
+def get_keywords_english(file_paths): #这里的重点是，对每一个file做尽可能简短且覆盖全面的summarization
     download_nltk()
     keywords_list = []
     for file_path in file_paths:
@@ -61,6 +70,30 @@ def get_keywords(file_paths): #这里的重点是，对每一个file做尽可能
             keywords_list.append(f"Top20 frequency keywords for {file_path}: {str_keywords}")
 
     return keywords_list
+
+'''
+还没测试，先在本地测试成功再说
+def get_keywords_chinese(file_paths):
+    # 初始化关键词列表
+    keywords_list = []
+
+    # 对每个文件进行处理
+    for file_path in file_paths:
+        # 读取文件内容
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+
+        # 使用jieba.analyse提取关键词
+        keywords = jieba.analyse.extract_tags(content, topK=20, withWeight=False)
+        # 将关键词转换为字符串形式
+        str_keywords = ", ".join(keywords)
+
+        # 将关键词列表添加到最终结果中
+        keywords_list.append(f"Top 20 frequency keywords for {file_path}: {str_keywords}")
+
+    # 返回结果
+    return keywords_list
+'''
 
 def get_completion_from_messages(messages, model="gpt-4", temperature=0):
         response = openai.ChatCompletion.create(
@@ -318,6 +351,7 @@ def app():
         <div class="footer">Made with 🧡 by Siyuan</div>
     """, unsafe_allow_html=True)
     with st.sidebar:
+        api_key = st.text_input('Your OpenAI API key:', 'sk-...')
         st.image("https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/20231021212525.png")
         added_files = st.file_uploader('Upload .md or .pdf files, simultaneous mixed upload these types is supported.', type=['.md','.pdf'], accept_multiple_files=True)
         with st.expander('Customize my course'):
@@ -353,6 +387,8 @@ def app():
     if "course_content_list" not in st.session_state:
         st.session_state.course_content_list = ''
     
+    if "OPENAI_API_KEY" not in st.session_state:
+        st.session_state["OPENAI_API_KEY"] = api_key
     if "openai_model" not in st.session_state:
         st.session_state["openai_model"] = "gpt-3.5-turbo"
         # Initialize chat history
@@ -385,6 +421,10 @@ def app():
         4. **Interactive learning**: <font color = 'grey'>Learn the course, and ask OmniTutor any questions related to this course whenever you encountered them.</font>
                                 
         🎉 Have fun playing with Omnitutor!
+                                                   
+        ### ⚠️ Key announcement 关键公告
+
+        - 因为                                                                                      
         ''', unsafe_allow_html=True
         )
     with st.session_state.start_col2:
