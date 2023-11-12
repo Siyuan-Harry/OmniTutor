@@ -438,7 +438,7 @@ def app():
     
 
     if btn:
-        if api_key != "sk-..." or "":
+        if api_key != "sk-..." and api_key !="" and api_key.startswith("sk-"):
             st.session_state.start_col1.empty()
             st.session_state.start_col2.empty()
             st.session_state.description.empty()
