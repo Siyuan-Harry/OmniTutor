@@ -438,27 +438,35 @@ def app():
     
 
     if btn:
-        st.session_state.start_col1.empty()
-        st.session_state.start_col2.empty()
-        st.session_state.description.empty()
-        st.session_state.case_pay.empty()
-        announce.empty()
+        if api_key != "sk-..." or "":
+            st.session_state.start_col1.empty()
+            st.session_state.start_col2.empty()
+            st.session_state.description.empty()
+            st.session_state.case_pay.empty()
+            announce.empty()
 
-        #initialize app
-        temp_file_paths = initialize_file(added_files)
-        st.session_state["OPENAI_API_KEY"] = api_key
-        openai.api_key = st.session_state["OPENAI_API_KEY"]
-        st.session_state.embeddings_df, st.session_state.faiss_index = initialize_vdb(temp_file_paths)
-        st.session_state.course_outline_list = initialize_outline(temp_file_paths, num_lessons, language)
-        st.session_state.course_content_list = initialize_content(st.session_state.course_outline_list, st.session_state.embeddings_df, st.session_state.faiss_index, language, style_options)
+            #initialize app
+            temp_file_paths = initialize_file(added_files)
+            st.session_state["OPENAI_API_KEY"] = api_key
+            openai.api_key = st.session_state["OPENAI_API_KEY"]
+            st.session_state.embeddings_df, st.session_state.faiss_index = initialize_vdb(temp_file_paths)
+            st.session_state.course_outline_list = initialize_outline(temp_file_paths, num_lessons, language)
+            st.session_state.course_content_list = initialize_content(st.session_state.course_outline_list, st.session_state.embeddings_df, st.session_state.faiss_index, language, style_options)
 
-        st.markdown('''
-                    > 🤔 <font color = 'grey'> **Not satisfied with this course?** Simply click "Generate my course!" button to regenerate a new one! </font>
-                    >
-                    > 😁 <font color = 'grey'> If the course is good enough for you, learn and enter questions related in the input box below 👇... </font>
+            st.markdown('''
+                        > 🤔 <font color = 'grey'> **Not satisfied with this course?** Simply click "Generate my course!" button to regenerate a new one! </font>
+                        >
+                        > 😁 <font color = 'grey'> If the course is good enough for you, learn and enter questions related in the input box below 👇... </font>
 
-                    :blue[Wish you all the best in your learning journey :)]
-                    ''', unsafe_allow_html=True)
+                        :blue[Wish you all the best in your learning journey :)]
+                        ''', unsafe_allow_html=True)
+        else:
+            st.session_state.start_col1.empty()
+            st.session_state.start_col2.empty()
+            st.session_state.description.empty()
+            st.session_state.case_pay.empty()
+            announce.empty()
+            st.write("请输入正确的API Key令牌")
                     
 
     col1, col2 = st.columns([0.6,0.4])
