@@ -41,7 +41,7 @@ def pdf_parser(input_pdf):
         pdf_content += page.extract_text()
     return pdf_content
 
-def get_keywords_english(file_paths): #这里的重点是，对每一个file做尽可能简短且覆盖全面的summarization
+def get_keywords(file_paths): #这里的重点是，对每一个file做尽可能简短且覆盖全面的summarization
     download_nltk()
     keywords_list = []
     for file_path in file_paths:
