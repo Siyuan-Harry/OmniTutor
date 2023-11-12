@@ -11,9 +11,9 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from collections import Counter
-from langdetect import detect
-import jieba
-import jieba.analyse
+#from langdetect import detect
+#import jieba
+#import jieba.analyse
 import nltk
 
 openai.api_key = st.session_state["OPENAI_API_KEY"]
