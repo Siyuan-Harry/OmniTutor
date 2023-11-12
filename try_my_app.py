@@ -27,14 +27,6 @@ def download_nltk():
 def chunkstring(string, length):
         return (string[0+i:length+i] for i in range(0, len(string), length))
 
-'''
-def detect_language(text):
-    try:
-        return detect(text)
-    except:
-        return "Language detection failed"
-'''
-
 def pdf_parser(input_pdf):
     pdf = PdfReader(input_pdf)
     pdf_content = ""
@@ -72,29 +64,6 @@ def get_keywords(file_paths): #这里的重点是，对每一个file做尽可能
 
     return keywords_list
 
-'''
-还没测试，先在本地测试成功再说
-def get_keywords_chinese(file_paths):
-    # 初始化关键词列表
-    keywords_list = []
-
-    # 对每个文件进行处理
-    for file_path in file_paths:
-        # 读取文件内容
-        with open(file_path, 'r', encoding='utf-8') as file:
-            content = file.read()
-
-        # 使用jieba.analyse提取关键词
-        keywords = jieba.analyse.extract_tags(content, topK=20, withWeight=False)
-        # 将关键词转换为字符串形式
-        str_keywords = ", ".join(keywords)
-
-        # 将关键词列表添加到最终结果中
-        keywords_list.append(f"Top 20 frequency keywords for {file_path}: {str_keywords}")
-
-    # 返回结果
-    return keywords_list
-'''
 
 def get_completion_from_messages(messages, model="gpt-4", temperature=0):
         response = openai.ChatCompletion.create(
@@ -337,9 +306,9 @@ def add_prompt_course_style(selected_style_list):
 def app():
     st.title("OmniTutor v0.1.0")
     st.caption('''
-    :blue[Key Announcement]: The free service has been disrupted due to high costs. In order to use OmniTutor you need to type your own OPENAI API key into the sidebar.
+    :blue[⚠️Key Announcement:] The free service has been disrupted due to high costs. In order to use OmniTutor you need to type your own OPENAI API key into the sidebar.
 
-    :blue[关键公告]: 免费服务现在已经因为过高的支出而中断。为了使用OmniTutor，你需要在边栏顶部输入自己的Openai API key。
+    :blue[⚠️关键公告：] 免费服务现在已经因为过高的支出而中断。为了使用OmniTutor，你需要在边栏顶部输入自己的Openai API key。
     ''')
     st.markdown("""
         <style>
