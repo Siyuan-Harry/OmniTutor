@@ -16,7 +16,7 @@ from collections import Counter
 #import jieba.analyse
 import nltk
 
-openai.api_key = st.session_state["OPENAI_API_KEY"]
+
 
 @st.cache_data
 def download_nltk():
@@ -27,12 +27,13 @@ def download_nltk():
 def chunkstring(string, length):
         return (string[0+i:length+i] for i in range(0, len(string), length))
 
+'''
 def detect_language(text):
     try:
         return detect(text)
     except:
         return "Language detection failed"
-
+'''
 
 def pdf_parser(input_pdf):
     pdf = PdfReader(input_pdf)
@@ -393,13 +394,12 @@ def app():
         st.session_state.course_content_list = ''
     
     if "OPENAI_API_KEY" not in st.session_state:
-        st.session_state["OPENAI_API_KEY"] = api_key
+        st.session_state["OPENAI_API_KEY"] = ''
     if "openai_model" not in st.session_state:
         st.session_state["openai_model"] = "gpt-3.5-turbo"
         # Initialize chat history
     if "messages" not in st.session_state:
         st.session_state.messages = []
-    
 
     st.session_state.start_col1, st.session_state.start_col2 = st.columns(2)
 
@@ -476,6 +476,8 @@ def app():
 
         #initialize app
         temp_file_paths = initialize_file(added_files)
+        st.session_state["OPENAI_API_KEY"] = api_key
+        openai.api_key = st.session_state["OPENAI_API_KEY"]
         st.session_state.embeddings_df, st.session_state.faiss_index = initialize_vdb(temp_file_paths)
         st.session_state.course_outline_list = initialize_outline(temp_file_paths, num_lessons, language)
         st.session_state.course_content_list = initialize_content(st.session_state.course_outline_list, st.session_state.embeddings_df, st.session_state.faiss_index, language, style_options)
