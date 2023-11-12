@@ -305,7 +305,7 @@ def add_prompt_course_style(selected_style_list):
 
 def app():
     st.title("OmniTutor v0.1.0")
-    st.caption('''
+    announce = st.caption('''
     :blue[⚠️Key Announcement:] The free service has been disrupted due to high costs. In order to use OmniTutor you need to type your own OPENAI API key into the sidebar.
 
     :blue[⚠️关键公告：] 免费服务现在已经因为过高的支出而中断。为了使用OmniTutor，你需要在边栏顶部输入自己的Openai API key。
@@ -442,6 +442,7 @@ def app():
         st.session_state.start_col2.empty()
         st.session_state.description.empty()
         st.session_state.case_pay.empty()
+        announce.empty()
 
         #initialize app
         temp_file_paths = initialize_file(added_files)
@@ -468,6 +469,7 @@ def app():
         st.session_state.start_col2.empty()
         st.session_state.description.empty()
         st.session_state.case_pay.empty()
+        announce.empty()
         
         with col1:
             #把课程大纲打印出来
