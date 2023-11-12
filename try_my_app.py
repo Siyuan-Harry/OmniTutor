@@ -310,6 +310,7 @@ def app():
 
     :blue[⚠️关键公告：] 免费服务现在已经因为过高的支出而中断。为了使用OmniTutor，你需要在边栏顶部输入自己的Openai API key。
     ''')
+    divider = st.divider()
     st.markdown("""
         <style>
             .footer {
@@ -444,6 +445,7 @@ def app():
             st.session_state.description.empty()
             st.session_state.case_pay.empty()
             announce.empty()
+            divider.empty()
 
             #initialize app
             temp_file_paths = initialize_file(added_files)
@@ -478,6 +480,7 @@ def app():
         st.session_state.description.empty()
         st.session_state.case_pay.empty()
         announce.empty()
+        divider.empty()
         
         with col1:
             #把课程大纲打印出来
