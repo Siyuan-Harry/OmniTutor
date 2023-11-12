@@ -377,7 +377,7 @@ def app():
         st.session_state.description = st.markdown('''
         <font color = 'grey'> An all-round teacher. A teaching assistant who really knows the subject. **Anything. Anywhere. All at once.** </font> :100:
         
-        - Github Repo: https://github.com/Siyuan-Harry/OmniTutor 
+        Github Repo: https://github.com/Siyuan-Harry/OmniTutor 
 
         ### ✨ Key features                                           
                                                    
