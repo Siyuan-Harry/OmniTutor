@@ -65,7 +65,7 @@ def get_keywords(file_paths): #这里的重点是，对每一个file做尽可能
     return keywords_list
 
 
-def get_completion_from_messages(messages, model="gpt-4", temperature=0):
+def get_completion_from_messages(messages, model="gpt-4-1106-preview", temperature=0):
         response = openai.ChatCompletion.create(
             model=model,
             messages=messages,
