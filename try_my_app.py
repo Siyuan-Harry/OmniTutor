@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import faiss
-import openai
+from openai import OpenAI
 import tempfile
 from PyPDF2 import PdfReader
 import io
@@ -15,8 +15,6 @@ from collections import Counter
 #import jieba
 #import jieba.analyse
 import nltk
-
-
 
 @st.cache_data
 def download_nltk():
@@ -65,15 +63,16 @@ def get_keywords(file_paths): #这里的重点是，对每一个file做尽可能
     return keywords_list
 
 
-def get_completion_from_messages(messages, model="gpt-4-1106-preview", temperature=0):
-        response = openai.ChatCompletion.create(
-            model=model,
-            messages=messages,
-            temperature=temperature, # this is the degree of randomness of the model's output
-        )
-        return response.choices[0].message["content"]
+def get_completion_from_messages(client, messages, model="gpt-4-1106-preview", temperature=0):
+    client = client
+    completion = client.chat.completions.create(
+        model=model,
+        messages=messages,
+        temperature=temperature,
+    )
+    return completion.choices[0].message.content
 
-def genarating_outline(keywords, num_lessons,language):
+def genarating_outline(client, keywords, num_lessons,language):
     system_message = 'You are a great AI teacher and linguist, skilled at create course outline based on summarized knowledge materials.'
     user_message = f"""You are a great AI teacher and linguist,
             skilled at generating course outline based on keywords of the course.
@@ -96,7 +95,7 @@ def genarating_outline(keywords, num_lessons,language):
                 'content': user_message},
             ]
 
-    response = get_completion_from_messages(messages)
+    response = get_completion_from_messages(client, messages)
 
     list_response = ['nothing in the answers..']
 
@@ -107,9 +106,9 @@ def genarating_outline(keywords, num_lessons,language):
 
     return list_response
 
-def courseOutlineGenerating(file_paths, num_lessons, language):
+def courseOutlineGenerating(client, file_paths, num_lessons, language):
     summarized_materials = get_keywords(file_paths)
-    course_outline = genarating_outline(summarized_materials, num_lessons, language)
+    course_outline = genarating_outline(client, summarized_materials, num_lessons, language)
     return course_outline
 
 def constructVDB(file_paths):
@@ -171,8 +170,7 @@ def searchVDB(search_sentence, paraphrase_embeddings_df, index):
         
     return retrieved_chunks_list
 
-def generateCourse(topic, materials, language, style_options):
-    #调用gpt4 API生成一节课的内容
+def generateCourse(client, topic, materials, language, style_options):
     system_message = 'You are a great AI teacher and linguist, skilled at writing informative and easy-to-understand course script based on given lesson topic and knowledge materials.'
 
     user_message = f"""You are a great AI teacher and linguist,
@@ -200,7 +198,7 @@ def generateCourse(topic, materials, language, style_options):
                 'content': user_message},
             ]
 
-    response = get_completion_from_messages(messages)
+    response = get_completion_from_messages(client, messages)
     return response
 
 def decorate_user_question(user_question, retrieved_chunks_for_user):
@@ -237,9 +235,9 @@ def initialize_vdb(temp_file_paths):
     st.success("Constructing vector database from provided materials...Done")
     return embeddings_df, faiss_index
 
-def initialize_outline(temp_file_paths, num_lessons, language):
+def initialize_outline(client, temp_file_paths, num_lessons, language):
     with st.spinner('Generating Course Outline...'):
-        course_outline_list = courseOutlineGenerating(temp_file_paths, num_lessons, language)
+        course_outline_list = courseOutlineGenerating(client, temp_file_paths, num_lessons, language)
     st.success("Generating Course Outline...Done")
     course_outline_string = ''
     lessons_count = 0
@@ -252,14 +250,14 @@ def initialize_outline(temp_file_paths, num_lessons, language):
     
     return course_outline_list
 
-def initialize_content(course_outline_list, embeddings_df, faiss_index, language, style_options):
+def initialize_content(client, course_outline_list, embeddings_df, faiss_index, language, style_options):
     count_generating_content = 0
     course_content_list = []
     for lesson in course_outline_list:
         count_generating_content += 1
         with st.spinner(f"Writing content for lesson {count_generating_content}..."):
             retrievedChunksList = searchVDB(lesson, embeddings_df, faiss_index)
-            courseContent = generateCourse(lesson, retrievedChunksList, language, style_options)
+            courseContent = generateCourse(client, lesson, retrievedChunksList, language, style_options)
             course_content_list.append(courseContent)
         st.success(f"Writing content for lesson {count_generating_content}...Done")
         with st.expander(f"Learn the lesson {count_generating_content} ", expanded=False):
@@ -365,9 +363,12 @@ def app():
     
     if "OPENAI_API_KEY" not in st.session_state:
         st.session_state["OPENAI_API_KEY"] = ''
+    #if "client" not in st.session_state:
+    #    st.session_state["client"] = ''
     if "openai_model" not in st.session_state:
-        st.session_state["openai_model"] = "gpt-3.5-turbo"
-        # Initialize chat history
+        st.session_state["openai_model"] = "gpt-4-1106-preview"
+    if "messages_ui" not in st.session_state:
+        st.session_state.messages_ui = []
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
@@ -413,16 +414,7 @@ def app():
         <img src="https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/WX20231103-215001@2x.png" height = "200" />
                                                 
         <img src="https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/WX20231103-214916@2x.png" height = "200" />
-        
-        ---
-
-        ### 💰 Support by donation 捐款支持
-        
-        - 如果OmniTutor对你有所帮助，请捐款赞助。因为每位用户的每次课程生成，都会产生一定的费用。个人开发者维护不易
-        - Please donate to support. Because each course generated by each user will incur a certain cost for me. 
-
-        <img src="https://siyuan-harry.oss-cn-beijing.aliyuncs.com/oss://siyuan-harry/20231110145229.png" height = "260" />
-                                                
+                                          
         ---
                                                                                         
         ### 🙌 Contact me 联系我 
@@ -435,7 +427,6 @@ def app():
                                                 
         ''', unsafe_allow_html=True)
     
-
     if btn:
         if api_key != "sk-..." and api_key !="" and api_key.startswith("sk-"):
             st.session_state.start_col1.empty()
@@ -448,10 +439,10 @@ def app():
             #initialize app
             temp_file_paths = initialize_file(added_files)
             st.session_state["OPENAI_API_KEY"] = api_key
-            openai.api_key = st.session_state["OPENAI_API_KEY"]
+            client = OpenAI(api_key = st.session_state["OPENAI_API_KEY"])
             st.session_state.embeddings_df, st.session_state.faiss_index = initialize_vdb(temp_file_paths)
-            st.session_state.course_outline_list = initialize_outline(temp_file_paths, num_lessons, language)
-            st.session_state.course_content_list = initialize_content(st.session_state.course_outline_list, st.session_state.embeddings_df, st.session_state.faiss_index, language, style_options)
+            st.session_state.course_outline_list = initialize_outline(client, temp_file_paths, num_lessons, language)
+            st.session_state.course_content_list = initialize_content(client, st.session_state.course_outline_list, st.session_state.embeddings_df, st.session_state.faiss_index, language, style_options)
 
             st.markdown('''
                         > 🤔 <font color = 'grey'> **Not satisfied with this course?** Simply click "Generate my course!" button to regenerate a new one! </font>
@@ -467,7 +458,7 @@ def app():
             st.session_state.case_pay.empty()
             announce.empty()
             divider.empty()
-            warning = st.write("请输入正确的API Key令牌")
+            warning = st.write("请输入正确的OpenAI API Key令牌")
                     
 
     col1, col2 = st.columns([0.6,0.4])
@@ -495,10 +486,12 @@ def app():
                 st.write("Hello👋, how can I help you today? 😄")
 
             # Display chat messages from history on app rerun
-            for message in st.session_state.messages:
+            for message in st.session_state.messages_ui:
                 with st.chat_message(message["role"]):
-                    st.markdown(message["content"][0])
+                    st.markdown(message["content"])
             
+            #更新ui上显示的聊天记录
+            st.session_state.messages_ui.append({"role": "user", "content": user_question})
             # Display new user question.
             with st.chat_message("user"):
                 st.markdown(user_question)
@@ -506,21 +499,30 @@ def app():
             #这里的session.state就是保存了这个对话会话的一些基本信息和设置
             retrieved_chunks_for_user = searchVDB(user_question, st.session_state.embeddings_df, st.session_state.faiss_index)
             prompt = decorate_user_question(user_question, retrieved_chunks_for_user)
-            st.session_state.messages.append({"role": "user", "content": [user_question, prompt]})
+            st.session_state.messages.append({"role": "user", "content": prompt})
 
             # Display assistant response in chat message container
             with st.chat_message("assistant"):
                 message_placeholder = st.empty()
                 full_response = ""
-                for response in openai.ChatCompletion.create(
+                client = OpenAI(api_key = st.session_state["OPENAI_API_KEY"])
+                for response in client.chat.completions.create(
                     model=st.session_state["openai_model"],
-                    messages=[{"role": "user", "content": prompt}],
+                    messages=[
+                        {"role": m["role"], "content": m["content"]}
+                        for m in st.session_state.messages #用chatbot那边的隐藏消息记录
+                    ],
                     stream=True,
                 ):
-                    full_response += response.choices[0].delta.get("content", "")
+                    try:
+                        full_response += response.choices[0].delta.content
+                    except:
+                        full_response += ""
                     message_placeholder.markdown(full_response + "▌")
                 message_placeholder.markdown(full_response)
-            st.session_state.messages.append({"role": "assistant", "content": [full_response,1]})
+            st.session_state.messages.append({"role": "assistant", "content": full_response})
+            st.session_state.messages_ui.append({"role": "assistant", "content": full_response}) 
+                
     
     
 if __name__ == "__main__":
