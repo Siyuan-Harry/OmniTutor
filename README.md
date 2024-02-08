@@ -79,7 +79,6 @@ Before running , ensure you have the following prerequisites installed:
    ```bash
    streamlit run <filename>.py
    ```
-
 ## Contributing
 
 We welcome contributions from the community. If you'd like to improve the application, feel free to fork the repository, make your changes, and submit a pull request.
@@ -87,6 +86,10 @@ We welcome contributions from the community. If you'd like to improve the applic
 ## License
 
 This project is licensed under the MIT License. For more details, refer to the `LICENSE` file in the repository.
+
+## Technical Route
+
+![](technical_route_OmniTutor.jpg)
 
 ## Acknowledgements
 
