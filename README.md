@@ -2,8 +2,6 @@
 
 ![](pic1.jpg)
 
-
-
 📢 **Key announcement**
 
 - This version of OmniTutor is now used fully for **Teaching Purpose**, so it won't update then. 
@@ -40,6 +38,10 @@ OmniTutor v0.1.0 is an all-round teacher, combined with a personalized teaching 
   OmniTutor is like an all-round study companion, no matter where you are, it can help you to ensure that your learning journey is smooth and fun.
 
 OmniTutor - An all-round teacher and a personalized teaching assistant who really knows the subject, to help you solve all your learning problems, Make learning so simple: anything, anywhere, all at once.
+
+## Technical Route
+
+![](technical_route_OmniTutor.jpg)
 
 ## How to Use
 
@@ -86,10 +88,6 @@ We welcome contributions from the community. If you'd like to improve the applic
 ## License
 
 This project is licensed under the MIT License. For more details, refer to the `LICENSE` file in the repository.
-
-## Technical Route
-
-![](technical_route_OmniTutor.jpg)
 
 ## Acknowledgements
 
